@@ -1,0 +1,27 @@
+/                       HomeR              GET
+/robots.txt             RobotsR            GET
+/static                 StaticR            Static appStatic
+
+-- Users and auth
+/auth                   AuthR              Auth getAuth
+/activate/#UserId/#Text UserAdminActivateR GET POST
+/profile                ProfileR           GET POST
+/users UserAdminR:
+    /              UserAdminIndexR         GET
+    /new           UserAdminNewR           GET POST
+    !/#UserId      UserAdminEditR          GET PATCH DELETE CHPASS RQPASS DEACTIVATE ACTIVATE
+
+-- Unnecessary?
+/activity ActionLogAdminR:
+    /              ActionLogAdminIndexR    GET
+    /user/#UserId  ActionLogAdminUserR     GET
+
+-- SimpleCRUD routes
+/modules/*CrudRoute-Unit-Module             ModuleR
+/tickets/*CrudRoute-ModuleId-Ticket         TicketR
+/patches/*CrudRoute-TicketId-Patch          PatchR
+/languages/*CrudRoute-Unit-Language         LanguageR
+
+-- Hopefully made obsolete by parent-ful CRUD...
+-- /modules/#ModuleId/tickets
+-- /modules/#ModuleId/tickets/#TicketId/patches

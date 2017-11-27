@@ -1,0 +1,18 @@
+resolver: lts-9.1
+allow-different-user: true
+
+packages:
+- .
+- location:
+    git: https://github.com/zarybnicky/cms-utils
+    commit: 2b9d9d376c76da3ca0e5a2fb67c976a67fdb666a
+  extra-dep: true
+
+extra-deps:
+- colonnade-1.1.0
+- blaze-colonnade-1.1.0
+
+flags: {}
+
+nix:
+  enable: true

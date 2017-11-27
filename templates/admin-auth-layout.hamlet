@@ -1,0 +1,16 @@
+<div .container-fluid>
+    <div .row>
+        <main .col-sm-8 .col-sm-offset-2 .col-md-6 .col-md-offset-3 .col-lg-4 .col-lg-offset-4>
+            $maybe msg <- mmsg
+                <div .row>
+                    <div>
+                        <div .alert .alert-info>#{msg}
+            <div .row>
+                <div>
+                    <div .well>
+                        ^{widget}
+            <div .row>
+                <div>
+                    <a href=@{HomeR}>
+                        <span>&#8592;
+                        _{MsgBackHome}

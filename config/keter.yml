@@ -1,0 +1,10 @@
+stanzas:
+  - type: webapp
+    exec: ../dist/bin/iis
+    args: []
+    hosts:
+      - iis.zarybnicky.com
+plugins:
+  postgres: true
+
+copy-to: root@ssh.zarybnicky.com:/opt/keter/incoming

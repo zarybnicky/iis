@@ -1,0 +1,101 @@
+name:    iis
+version: 0.1.0
+
+dependencies:
+
+- base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+
+- classy-prelude
+- classy-prelude-yesod
+
+- cms-utils
+
+- aeson
+- blaze-html
+- blaze-markup
+- bytestring
+- case-insensitive
+- colonnade
+- conduit-extra
+- containers
+- directory
+- esqueleto
+- fast-logger
+- file-embed
+- filepath
+- friendly-time
+- gravatar
+- hjsmin
+- http-conduit
+- lifted-base
+- mime-mail
+- monad-logger
+- persistent
+- persistent-template
+- shakespeare
+- smtp-mail
+- template-haskell
+- text
+- time
+- transformers
+- unordered-containers
+- uuid
+- vault
+- wai
+- wai-extra
+- wai-logger
+- warp
+- yaml
+- yesod
+- yesod-auth
+- yesod-auth-hashdb
+- yesod-core
+- yesod-form
+- yesod-static
+
+
+library:
+  source-dirs: src
+  when:
+  - condition: (flag(dev)) || (flag(library-only))
+    then:
+      dependencies:
+      - persistent-sqlite
+      ghc-options:
+      - -Wall
+      - -fwarn-tabs
+      - -O0
+      cpp-options: -DDEVELOPMENT
+    else:
+      dependencies:
+      - persistent-postgresql
+      ghc-options:
+      - -Wall
+      - -fwarn-tabs
+      - -O2
+
+executables:
+  iis:
+    main: main.hs
+    source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - iis
+    - foreign-store
+    when:
+    - condition: flag(library-only)
+      buildable: false
+
+# Define flags used by "yesod devel" to make compilation faster
+flags:
+  library-only:
+    description: Build for use with "yesod devel"
+    manual: false
+    default: false
+  dev:
+    description: Turn on development settings, like auto-reload templates.
+    manual: false
+    default: false
