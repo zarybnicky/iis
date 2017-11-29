@@ -22,6 +22,12 @@ LanguageAdminNew: New language
 LanguageAdminEdit: Edit language
 NoLanguageFound: No languages found
 
+PatchAdmin: Patch
+PatchAdminIndex: Patch overview
+PatchAdminNew: New patch
+PatchAdminEdit: Edit patch
+NoPatchFound: No patch found
+
 Back: Back
 Save: Save
 Delete: Delete
@@ -55,6 +61,9 @@ LogModuleDeleted name@Text: Deleted module "#{name}"
 LogTicketCreated name@Text: Created ticket "#{name}"
 LogTicketUpdated name@Text: Updated ticket "#{name}"
 LogTicketDeleted name@Text: Deleted ticket "#{name}"
+LogPatchCreated name@Text: Created patch "#{name}"
+LogPatchUpdated name@Text: Updated patch "#{name}"
+LogPatchDeleted name@Text: Deleted patch "#{name}"
 LogLanguageCreated name@Text: Created language "#{name}"
 LogLanguageUpdated name@Text: Updated language "#{name}"
 LogLanguageDeleted name@Text: Deleted language "#{name}"
@@ -101,6 +110,9 @@ Repository: Repository
 Status: Status
 Author: Author
 AssignedTo: Assigned to
+CreationDate: CreationDate
+Approved: Approved
+ApprovedDate: ApprovedDate
 
 Dashboard: Dashboard
 Administration: Administrace

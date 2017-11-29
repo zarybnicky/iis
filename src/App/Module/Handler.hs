@@ -20,8 +20,8 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Form.Bootstrap3
 
-handleModuleR' :: CrudRoute () Module -> Handler Html
-handleModuleR' =
+handleModuleR :: CrudRoute () Module -> Handler Html
+handleModuleR =
   handleCrud . flip simplerCrudToHandler ModuleR $
   SimplerCrud
   { crudSimplerMsg = moduleMessages
