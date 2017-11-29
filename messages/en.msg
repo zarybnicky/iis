@@ -4,6 +4,12 @@ NewsAdminNew: New news item
 NewsAdminEdit: Edit news item
 NoNewsFound: No news items found
 
+ModuleAdmin: Module
+ModuleAdminIndex: Module overview
+ModuleAdminNew: New module item
+ModuleAdminEdit: Edit module item
+NoModuleFound: No module items found
+
 Back: Back
 Save: Save
 Delete: Delete
@@ -31,6 +37,9 @@ FailRename: Failed to rename
 LogNewsCreated name@Text: Created news item "#{name}"
 LogNewsUpdated name@Text: Updated news item "#{name}"
 LogNewsDeleted name@Text: Deleted news item "#{name}"
+LogModuleCreated name@Text: Created module item "#{name}"
+LogModuleUpdated name@Text: Updated module item "#{name}"
+LogModuleDeleted name@Text: Deleted moduleitem "#{name}"
 LogUserCreated name@Text: Created user "#{name}"
 LogUserUpdated name@Text: Updated user "#{name}"
 LogUserDeleted name@Text: Deleted user "#{name}"

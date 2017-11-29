@@ -24,7 +24,7 @@ handleModuleR' :: CrudRoute () Module -> Handler Html
 handleModuleR' =
   handleCrud . flip simplerCrudToHandler ModuleR $
   SimplerCrud
-  { crudSimplerMsg = error "FIXME"
+  { crudSimplerMsg = moduleMessages
   , crudSimplerDb = defaultCrudDb
   , crudSimplerForm = moduleForm
   , crudSimplerTable =
@@ -53,3 +53,16 @@ moduleForm m _ =
         []
         [Asc ProgrammerContractNum]
         (T.pack . show . programmerContractNum)
+
+moduleMessages :: CrudMessages App Module
+moduleMessages = CrudMessages
+  { crudMsgBack = SomeMessage MsgBack
+  , crudMsgDelete = SomeMessage MsgDelete
+  , crudMsgIndex = SomeMessage MsgModuleAdminIndex
+  , crudMsgNew = SomeMessage MsgModuleAdminNew
+  , crudMsgEdit = SomeMessage MsgModuleAdminEdit
+  , crudMsgNoEntities = SomeMessage MsgNoModuleFound
+  , crudMsgCreated = SomeMessage . MsgLogModuleCreated . moduleName
+  , crudMsgUpdated = SomeMessage . MsgLogModuleUpdated . moduleName
+  , crudMsgDeleted = SomeMessage . MsgLogModuleDeleted . moduleName
+  }
