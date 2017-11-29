@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE QuasiQuotes	       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-warn-orphans  #-}
@@ -41,7 +42,7 @@ import Network.Wai.Middleware.RequestLogger
 import Settings
 import System.Log.FastLogger
        (defaultBufSize, newStdoutLoggerSet, toLogStr)
-import Yesod.Auth (getAuth)
+import Yesod.Auth (getAuth, requireAuthId)
 import Yesod.Core.Types (loggerSet)
 import Yesod.Default.Config2
 
@@ -55,18 +56,21 @@ import App.User.Handler
 mkYesodDispatch "App" resourcesApp
 
 getHomeR, getProfileR, postProfileR :: Handler Html
-getHomeR = error "FIXME"
-getProfileR = error "FIXME"
-postProfileR = error "FIXME"
+getHomeR = defaultLayout [whamlet|<h1>text|]
+getProfileR = do
+      uid <- requireAuthId
+      user <- runDB $ get404 (Just uid)
+      defaultLayout  [whamlet|<h1>text|]
+postProfileR = getProfileR
 
 handleModuleR :: CrudRoute () Module -> Handler Html
-handleModuleR = error "FIXME"
+handleModuleR = handleModuleR' ModuleR
 handleTicketR :: CrudRoute ModuleId Ticket -> Handler Html
-handleTicketR = error "FIXME"
+handleTicketR = handleTicketR' TicketR
 handlePatchR :: CrudRoute TicketId Patch -> Handler Html
-handlePatchR = error "FIXME"
+handlePatchR = handlePatchR' PatchR
 handleLanguageR :: CrudRoute () Language -> Handler Html
-handleLanguageR = error "FIXME"
+handleLanguageR = handleLanguageR' LanguageR
 
 -- | This function allocates resources (such as a database connection pool),
 -- performs initialization and returns a foundation datatype value. This is also
