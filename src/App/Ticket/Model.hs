@@ -25,9 +25,9 @@ import App.Ticket.Types (TicketStatus)
 
 share [mkPersist sqlSettings, mkMigrate "migrateTicket"] [persistLowerCase|
 Ticket
+    name Text
+    description Text
     status TicketStatus
-    title Text
-    text Text
     author UserId
     assignedTo ProgrammerId Maybe
 

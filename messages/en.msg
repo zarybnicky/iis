@@ -6,9 +6,21 @@ NoNewsFound: No news items found
 
 ModuleAdmin: Module
 ModuleAdminIndex: Module overview
-ModuleAdminNew: New module item
-ModuleAdminEdit: Edit module item
-NoModuleFound: No module items found
+ModuleAdminNew: New module
+ModuleAdminEdit: Edit module
+NoModuleFound: No modules found
+
+TicketAdmin: Ticket
+TicketAdminIndex: Ticket overview
+TicketAdminNew: New ticket
+TicketAdminEdit: Edit ticket
+NoTicketFound: No tickets found
+
+LanguageAdmin: Language
+LanguageAdminIndex: Language overview
+LanguageAdminNew: New language
+LanguageAdminEdit: Edit language
+NoLanguageFound: No languages found
 
 Back: Back
 Save: Save
@@ -37,9 +49,15 @@ FailRename: Failed to rename
 LogNewsCreated name@Text: Created news item "#{name}"
 LogNewsUpdated name@Text: Updated news item "#{name}"
 LogNewsDeleted name@Text: Deleted news item "#{name}"
-LogModuleCreated name@Text: Created module item "#{name}"
-LogModuleUpdated name@Text: Updated module item "#{name}"
-LogModuleDeleted name@Text: Deleted moduleitem "#{name}"
+LogModuleCreated name@Text: Created module "#{name}"
+LogModuleUpdated name@Text: Updated module "#{name}"
+LogModuleDeleted name@Text: Deleted module "#{name}"
+LogTicketCreated name@Text: Created ticket "#{name}"
+LogTicketUpdated name@Text: Updated ticket "#{name}"
+LogTicketDeleted name@Text: Deleted ticket "#{name}"
+LogLanguageCreated name@Text: Created language "#{name}"
+LogLanguageUpdated name@Text: Updated language "#{name}"
+LogLanguageDeleted name@Text: Deleted language "#{name}"
 LogUserCreated name@Text: Created user "#{name}"
 LogUserUpdated name@Text: Updated user "#{name}"
 LogUserDeleted name@Text: Deleted user "#{name}"
@@ -80,6 +98,9 @@ LogOut: Log out
 ToggleNavigation: Toggle navigation
 Supervisor: Supervisor
 Repository: Repository
+Status: Status
+Author: Author
+AssignedTo: Assigned to
 
 Dashboard: Dashboard
 Administration: Administrace

@@ -25,26 +25,21 @@ import Cms.ActionLog.Class (CmsActionLog(..))
 import Cms.Class (Cms(..))
 import Cms.Crud.Route (CrudRoute(..))
 import Cms.Mailer.Class
-import Cms.Roles.Class (CmsRoles(..), Allow(..), getCan)
-import qualified Data.ByteString.Lazy.Char8 as BC
+import Cms.Roles.Class (CmsRoles(..), Allow(..))
 import qualified Data.CaseInsensitive as CI
 import Data.Maybe (isJust)
 import Data.Ord (comparing)
 import qualified Data.Set as S
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
-import Data.Time (addUTCTime, getCurrentTime)
+import Data.Time (getCurrentTime)
 import Data.Time.Format.Human
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import I18n
 import Message
-import Network.Gravatar
-       (GravatarOptions(..), Size(..), def, gravatar)
 import Network.Mail.SMTP (sendMailWithLogin)
 import qualified Network.Wai as W
 import Settings
-import Settings.StaticFiles
-import qualified Text.Blaze.Html5 as H
 import Text.Hamlet (hamletFile)
 import Text.Jasmine (minifym)
 import Yesod.Auth
@@ -220,6 +215,8 @@ unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
 
 instance Cms App where
   renderLanguages _ = ["en", "cs"]
+  adminLayout = defaultLayout
+  adminMenu = []
 
 instance CmsActionLog App where
   data Log App = ActionLog
@@ -259,7 +256,6 @@ defaultAdminAuthLayout :: Widget -> Handler Html
 defaultAdminAuthLayout widget = do
     mmsg      <- getMessage
     logoRowId <- newIdent
-    y <- getYesod
 
     pc <- widgetToPageContent $ do
       $(widgetFile "admin-auth-layout")

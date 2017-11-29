@@ -51,6 +51,7 @@ dependencies:
 - yesod-auth-hashdb
 - yesod-core
 - yesod-form
+- yesod-persistent
 - yesod-static
 
 

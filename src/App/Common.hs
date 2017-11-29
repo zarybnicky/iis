@@ -11,13 +11,21 @@
 module App.Common where
 
 import ClassyPrelude.Yesod hiding (Request)
-import Cms.Class (adminLayout)
-import Cms.Roles.Class (getCan)
 import Data.FileEmbed (embedFile)
 import Foundation
-import Message (AppMessage(..))
-import Settings (widgetFile)
 import Yesod.Auth (requireAuthId)
+
+getHomeR :: Handler Html
+getHomeR = defaultLayout [whamlet|<h1>text|]
+
+getProfileR :: Handler Html
+getProfileR = do
+  uid <- requireAuthId
+  _user <- runDB $ get404 uid
+  defaultLayout [whamlet|<h1>text|]
+
+postProfileR :: Handler Html
+postProfileR = getProfileR
 
 getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain

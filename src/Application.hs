@@ -52,33 +52,16 @@ import App.Migrations (migrateAll, migrateCustom)
 import App.ActionLog.Model (ActionLog)
 import App.ActionLog.Handler
 import App.Module.Model (Module, ModuleId)
-import App.Module.Handler (handleModuleR')
+import App.Module.Handler (handleModuleR)
 import App.Ticket.Model (Ticket, TicketId)
+import App.Ticket.Handler (handleTicketR)
 import App.Patch.Model (Patch)
+import App.Patch.Handler (handlePatchR)
 import App.Language.Model (Language)
+import App.Language.Handler (handleLanguageR)
 import App.User.Handler
 
 mkYesodDispatch "App" resourcesApp
-
-getHomeR, getProfileR, postProfileR :: Handler Html
-getHomeR = defaultLayout [whamlet|<h1>text|]
-getProfileR = do
-  uid <- requireAuthId
-  user <- runDB $ get404 uid
-  defaultLayout [whamlet|<h1>text|]
-postProfileR = getProfileR
-
-handleModuleR :: CrudRoute () Module -> Handler Html
-handleModuleR = handleModuleR
-
-handleTicketR :: CrudRoute ModuleId Ticket -> Handler Html
-handleTicketR = handleTicketR' TicketR
-
-handlePatchR :: CrudRoute TicketId Patch -> Handler Html
-handlePatchR = handlePatchR' PatchR
-
-handleLanguageR :: CrudRoute () Language -> Handler Html
-handleLanguageR = handleLanguageR' LanguageR
 
 -- | This function allocates resources (such as a database connection pool),
 -- performs initialization and returns a foundation datatype value. This is also
@@ -111,7 +94,7 @@ makeFoundation appSettings = do
     (flip runSqlPool pool $ do
       runMigration migrateAll
       migrateCustom appSettings)
-    (messageLoggerSource theFoundation appLogger)
+Ticket    (messageLoggerSource theFoundation appLogger)
   return theFoundation
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
