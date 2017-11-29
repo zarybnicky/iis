@@ -55,8 +55,13 @@ insertFirstAdmin s = do
         User
         { userIdent = uuid
         , userPassword = Nothing
-        , userName = takeWhile (/= '@') admin
         , userEmail = admin
+        , userFirstName = "First"
+        , userLastName = "Last"
+        , userBirthNumber = 0
+        , userAddress = Nothing
+        , userCity = Nothing
+        , userPostalCode = Nothing
         , userActive = True
         , userToken = Nothing
         , userCreatedAt = timeNow

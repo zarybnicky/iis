@@ -5,7 +5,7 @@
                 <span .glyphicon .glyphicon-arrow-left>
                 _{MsgBack}
 <div .page-header>
-    <h1>_{MsgEditUser $ userName user}
+    <h1>_{MsgEditUser $ userEmail user}
     $if authId /= userId
         $maybe r <- can (UserAdminR $ UserAdminEditR userId) "DELETE"
             <form .form-inline .display-inline method=post action=@{r}>
@@ -33,9 +33,6 @@
         <div .table-responsive>
             <table .table .table-striped>
                 <tbody>
-                    <tr>
-                        <td>_{MsgUsername}
-                        <td .text-right>#{userName user}
                     <tr>
                         <td>_{MsgEmailAddress}
                         <td .text-right>#{userEmail user}

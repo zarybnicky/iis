@@ -1,15 +1,16 @@
 {-# LANGUAGE TemplateHaskell       #-}
 
-module App.Roles.Types
-  ( RoleName(..)
+module App.Ticket.Types
+  ( TicketStatus(..)
   ) where
 
 import ClassyPrelude.Yesod
 
-data RoleName
-  = User
-  | Programmer
-  | Admin
+data TicketStatus
+  = New
+  | InProgress
+  | Complete
   deriving (Eq, Ord, Show, Read, Enum, Bounded, Typeable)
 
-derivePersistField "RoleName"
+derivePersistField "TicketStatus"
+

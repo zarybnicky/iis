@@ -1,4 +1,4 @@
-Hi #{userName user},
+Hi #{userFirstName user},
 
 A new password has been requested for your account.
 

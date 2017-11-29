@@ -40,7 +40,13 @@ LogUserDeactivated name@Text: Deactivated user "#{name}"
 LogUserActivated name@Text: Activated user "#{name}"
 
 Name: Name
+FirstName: First name
+LastName: Last name
 FullName: Full name
+BirthNumber: Birth number
+Address: Address
+City: City
+PostalCode: Postal code
 Email: Email
 EmailAddress: E-mail address
 Type: Type
@@ -63,6 +69,8 @@ AlreadyHaveAMembership: I already have a membership
 SignIn: Sign in
 LogOut: Log out
 ToggleNavigation: Toggle navigation
+Supervisor: Supervisor
+Repository: Repository
 
 Dashboard: Dashboard
 Administration: Administrace

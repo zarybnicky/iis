@@ -49,8 +49,13 @@ import Yesod.Default.Config2
 import App.Common
 import App.Migrations (migrateAll, migrateCustom)
 
-import App.ActionLog.Model
+import App.ActionLog.Model (ActionLog)
 import App.ActionLog.Handler
+import App.Module.Model (Module, ModuleId)
+import App.Module.Handler (handleModuleR')
+import App.Ticket.Model (Ticket, TicketId)
+import App.Patch.Model (Patch)
+import App.Language.Model (Language)
 import App.User.Handler
 
 mkYesodDispatch "App" resourcesApp
@@ -58,17 +63,20 @@ mkYesodDispatch "App" resourcesApp
 getHomeR, getProfileR, postProfileR :: Handler Html
 getHomeR = defaultLayout [whamlet|<h1>text|]
 getProfileR = do
-      uid <- requireAuthId
-      user <- runDB $ get404 (Just uid)
-      defaultLayout  [whamlet|<h1>text|]
+  uid <- requireAuthId
+  user <- runDB $ get404 uid
+  defaultLayout [whamlet|<h1>text|]
 postProfileR = getProfileR
 
 handleModuleR :: CrudRoute () Module -> Handler Html
-handleModuleR = handleModuleR' ModuleR
+handleModuleR = handleModuleR
+
 handleTicketR :: CrudRoute ModuleId Ticket -> Handler Html
 handleTicketR = handleTicketR' TicketR
+
 handlePatchR :: CrudRoute TicketId Patch -> Handler Html
 handlePatchR = handlePatchR' PatchR
+
 handleLanguageR :: CrudRoute () Language -> Handler Html
 handleLanguageR = handleLanguageR' LanguageR
 
@@ -85,7 +93,7 @@ makeFoundation appSettings = do
        then staticDevel
        else static)
       (appStaticDir appSettings)
-  let mkFoundation appConnPool = App {..}
+  let mkFoundation  appConnPool = App {..}
       tempFoundation = mkFoundation $ error "connPool forced in tempFoundation"
       logFunc = messageLoggerSource tempFoundation appLogger
   pool <-

@@ -33,7 +33,7 @@ import Cms.Roles.Class (Roles, getCan, getUserRoles, setUserRoles, mayAssignRole
 import Control.Arrow ((&&&))
 import Data.Maybe (fromJust, fromMaybe, isJust)
 import qualified Data.Set as S
-import qualified Data.Text as T (breakOn, length, pack, takeWhile)
+import qualified Data.Text as T
 import Data.Time.Format.Human
 import Foundation
 import Message (AppMessage(..))
@@ -60,8 +60,14 @@ accountSettingsForm
 accountSettingsForm user roles mlabel extra = do
     maRoles <- lift mayAssignRoles
     -- User fields
-    (unameRes, unameView) <- mreq textField (bfs MsgUsername) (Just $ userName user)
+    (fnameRes, fnameView) <- mreq textField (bfs MsgFirstName) (Just $ userFirstName user)
+    (lnameRes, lnameView) <- mreq textField (bfs MsgLastName) (Just $ userLastName user)
     (emailRes, emailView) <- mreq emailField (bfs MsgEmailAddress) (Just $ userEmail user)
+    (birthRes, birthView) <- mreq intField (bfs MsgBirthNumber) (Just $ userBirthNumber user)
+    (addrRes, addrView) <- mopt textField (bfs MsgAddress) (Just $ userAddress user)
+    (cityRes, cityView) <- mopt textField (bfs MsgCity) (Just $ userCity user)
+    (postRes, postView) <- mopt intField (bfs MsgPostalCode) (Just $ userPostalCode user)
+
     -- Roles field
     (rolesRes, mrolesView) <- if maRoles
         then do
@@ -71,9 +77,16 @@ accountSettingsForm user roles mlabel extra = do
             return (rolesRes', Just rolesView)
         else return (FormSuccess $ S.toList roles, Nothing)
 
-    let userRes = (\un ue -> user { userName = un, userEmail = ue })
-                  <$> unameRes
-                  <*> emailRes
+    let userRes = (\a b c d e f g -> user { userFirstName = a
+                                          , userLastName = b
+                                          , userEmail = c
+                                          , userBirthNumber = d
+                                          , userAddress = e
+                                          , userCity = f
+                                          , userPostalCode = g
+                                          })
+                  <$> fnameRes <*> lnameRes <*> emailRes <*> birthRes
+                  <*> addrRes <*> cityRes <*> postRes
         formRes = (,) <$> userRes <*> rolesRes
         widget = $(widgetFile "user/settings-form")
 
@@ -109,8 +122,13 @@ generateUserWithEmail e = do
   return
     User
     { userIdent = uuid
-    , userName = fst $ T.breakOn "@" e
+    , userFirstName = ""
+    , userLastName = ""
     , userPassword = Nothing
+    , userBirthNumber = 0
+    , userAddress = Nothing
+    , userCity = Nothing
+    , userPostalCode = Nothing
     , userEmail = e
     , userActive = False
     , userToken = Just token
@@ -191,7 +209,7 @@ postUserAdminNewR = do
       userId <- runDB $ insert user
       setUserRoles userId (S.fromList roles)
       sendAccountActivationToken (Entity userId user)
-      logMsg $ MsgLogUserCreated (userName user)
+      logMsg $ MsgLogUserCreated (userEmail user)
       setMessageI MsgSuccessCreate
       redirectUltDest $ UserAdminR UserAdminIndexR
     _ ->
@@ -218,7 +236,7 @@ getUserAdminEditR userId = do
       generateFormPost $
       userChangePasswordForm Nothing (Just MsgChange) -- user password form
     adminLayout $ do
-      setTitleI . MsgEditUser $ userName user
+      setTitleI . MsgEditUser $ userEmail user
       $(widgetFile "user/edit")
 
 -- | Change a user's main properties.
@@ -232,15 +250,9 @@ patchUserAdminEditR userId = do
   case formResult of
     FormSuccess (updatedUser, updatedRoles) -> do
       do
-        _ <-
-          runDB $
-          update
-            userId
-            [ UserName =. userName updatedUser
-            , UserEmail =. userEmail updatedUser
-            ]
+        _ <- runDB $ replace userId updatedUser
         setUserRoles userId (S.fromList updatedRoles)
-        logMsg $ MsgLogUserUpdated (userName updatedUser)
+        logMsg $ MsgLogUserUpdated (userEmail updatedUser)
         setMessageI MsgSuccessReplace
       redirect . UserAdminR $ UserAdminEditR userId
     _ ->
@@ -248,7 +260,7 @@ patchUserAdminEditR userId = do
         authId <- requireAuthId
         can <- getCan
         adminLayout $ do
-          setTitleI . MsgEditUser $ userName user
+          setTitleI . MsgEditUser $ userEmail user
           $(widgetFile "user/edit")
 
 -- | Helper function to get data required for some DB updates operations in
@@ -277,14 +289,14 @@ chpassUserAdminEditR userId = do
         FormSuccess f -> do
           saltedPassword <- liftIO . saltPass $ originalPassword f
           _ <- runDB $ update userId [UserPassword =. Just saltedPassword]
-          logMsg $ MsgLogUserChangedPassword (userName user)
+          logMsg $ MsgLogUserChangedPassword (userEmail user)
           setMessageI MsgSuccessChgPwd
           redirect . UserAdminR $ UserAdminEditR userId
         _ ->
           do
             can <- getCan
             adminLayout $ do
-              setTitleI . MsgEditUser $ userName user
+              setTitleI . MsgEditUser $ userEmail user
               $(widgetFile "user/edit")
     else error "Can't change this uses password"
 
@@ -298,7 +310,7 @@ rqpassUserAdminEditR userId = do
         {userToken = Just token, userPassword = Nothing, userActive = False}
   _ <- runDB $ replace userId user
   _ <- sendAccountResetToken (Entity userId user)
-  logMsg $ MsgLogUserRequestedPassword (userName user)
+  logMsg $ MsgLogUserRequestedPassword (userEmail user)
   setMessageI MsgPasswordResetTokenSend
   redirectUltDest . UserAdminR $ UserAdminEditR userId
 
@@ -310,7 +322,7 @@ deactivateUserAdminEditR userId = do
     Nothing -> do
       let user = user' {userActive = False}
       _ <- runDB $ replace userId user
-      logMsg $ MsgLogUserDeactivated (userName user)
+      logMsg $ MsgLogUserDeactivated (userEmail user)
       setMessageI MsgUserDeactivated
     _ -> setMessageI MsgUserStillPending
   redirectUltDest . UserAdminR $ UserAdminEditR userId
@@ -323,7 +335,7 @@ activateUserAdminEditR userId = do
     Nothing -> do
       let user = user' {userActive = True}
       _ <- runDB $ replace userId user
-      logMsg $ MsgLogUserActivated (userName user)
+      logMsg $ MsgLogUserActivated (userEmail user)
       setMessageI MsgUserActivated
     _ -> setMessageI MsgUserStillPending
   redirectUltDest . UserAdminR $ UserAdminEditR userId
@@ -345,7 +357,7 @@ deleteUserAdminEditR userId = do
           , userDeletedAt = Just timeNow
           }
     _ <- runDB $ replace userId user
-    logMsg $ MsgLogUserDeleted (userName user)
+    logMsg $ MsgLogUserDeleted (userEmail user)
     setMessageI MsgSuccessDelete
   redirectUltDest $ UserAdminR UserAdminIndexR
 
@@ -358,7 +370,7 @@ getUserAdminActivateR userId token = do
       (pwFormWidget, pwEnctype) <-
         generateFormPost $ userChangePasswordForm Nothing (Just MsgSave)
       authLayout $ do
-        setTitle . toHtml $ userName user
+        setTitle . toHtml $ userEmail user
         $(widgetFile "user/activate")
     Just False ->
       authLayout $ do
@@ -393,7 +405,7 @@ postUserAdminActivateR userId token = do
           redirect HomeR
         _ ->
           authLayout $ do
-            setTitle . toHtml $ userName user
+            setTitle . toHtml $ userEmail user
             $(widgetFile "user/activate")
     Just False ->
       authLayout $ do

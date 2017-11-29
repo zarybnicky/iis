@@ -1,6 +1,6 @@
 LambdaCms Registration
 
-Hi #{userName user},
+Hi #{userFirstName user},
 Someone just created an account for you
 
 Go to "@{UserAdminActivateR userId token}" to activate your account

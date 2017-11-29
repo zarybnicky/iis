@@ -19,9 +19,8 @@
                 <table .table .table-striped .table-hover>
                     <thead>
                         <tr>
-                            <th>_{MsgUsername}
+                            <th>_{MsgEmail}
                             <th .text-right>Roles
-                            <th>_{MsgEmailAddress}
                             <th .text-right>_{MsgAccountStatus}
                             <th>_{MsgCreatedOn}
                             <th>_{MsgLastLogin}
@@ -31,13 +30,12 @@
                                 <tr :isJust mroute:onclick="document.location.href='@{fromJust mroute}'">
                                     <td>
                                         $maybe r <- mroute
-                                            <a href=@{r}>#{userName user}
+                                            <a href=@{r}>#{userEmail user}
                                         $nothing
-                                            #{userName user}
+                                            #{userEmail user}
                                     <td .text-right>
                                         $forall role <- roles
                                             <span .label .label-primary>#{show role}
-                                    <td>#{userEmail user}
                                     $maybe _ <- userToken user
                                         <td .text-right .text-warning>_{MsgAccountPending}
                                     $nothing

@@ -13,6 +13,10 @@
 module Foundation where
 
 import App.ActionLog.Model
+import App.Module.Model (Module, ModuleId)
+import App.Ticket.Model (Ticket, TicketId)
+import App.Patch.Model (Patch)
+import App.Language.Model (Language)
 import App.Roles.Model (UserRole(..), EntityField(..))
 import App.Roles.Types (RoleName(..))
 import App.User.Model (User(..), UserId, EntityField(..), Unique(..))

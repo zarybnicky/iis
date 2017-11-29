@@ -10,14 +10,14 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module App.ActionLog.Model where
-  -- ( ActionLogId
-  -- , ActionLog(..)
-  -- , EntityField(..)
-  -- , Unique(..)
-  -- , migrateActionLog
-  -- , logMsgImpl
-  -- ) where
+module App.ActionLog.Model
+  ( ActionLogId
+  , ActionLog(..)
+  , EntityField(..)
+  , Unique(..)
+  , migrateActionLog
+  , logMsgImpl
+  ) where
 
 import App.User.Model
 import ClassyPrelude.Yesod
@@ -34,19 +34,6 @@ ActionLog
     createdAt    UTCTime
     UniqueLog    ident lang
     deriving     Typeable Show
-
-Module
-    x Text
-    deriving     Eq Show Read Typeable
-Ticket
-    x Text
-    deriving     Eq Show Read Typeable
-Patch
-    x Text
-    deriving     Eq Show Read Typeable
-Language
-    x Text
-    deriving     Eq Show Read Typeable
 |]
 
 logMsgImpl

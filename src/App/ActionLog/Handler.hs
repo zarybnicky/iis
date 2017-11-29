@@ -97,7 +97,7 @@ logToJsonLog can renderUrl toAgo (Entity _ log', Entity userId user) =
   return
     JsonLog
     { message = actionLogMessage log'
-    , username = userName user
+    , username = userEmail user
     , userUrl =
         renderUrl <$> can (UserAdminR $ UserAdminEditR userId) "GET"
     , timeAgo = toAgo $ actionLogCreatedAt log'
