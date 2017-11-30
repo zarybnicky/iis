@@ -9,7 +9,7 @@ module App.Patch.Handler where
 
 import App.User.Model (User(..), Programmer(..), EntityField(..))
 import App.Patch.Model (Patch(..))
-import App.Module.Model (Module(..))
+import App.Ticket.Model (TicketId)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
 import Cms.Crud
 import Cms.Crud.Route
@@ -21,7 +21,7 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Form.Bootstrap3
 
-handlePatchR :: CrudRoute () Patch -> Handler Html
+handlePatchR :: CrudRoute TicketId Patch -> Handler Html
 handlePatchR = error "Requires 'SimpleCrud'"
  -- handleCrud . flip simplerCrudToHandler PatchR $
  -- SimplerCrud
@@ -69,7 +69,7 @@ patchMessages = CrudMessages
   , crudMsgNew = SomeMessage MsgPatchAdminNew
   , crudMsgEdit = SomeMessage MsgPatchAdminEdit
   , crudMsgNoEntities = SomeMessage MsgNoPatchFound
-  --, crudMsgCreated = SomeMessage . MsgLogPatchCreated . patchId
-  --, crudMsgUpdated = SomeMessage . MsgLogPatchUpdated . patchId
-  --, crudMsgDeleted = SomeMessage . MsgLogPatchDeleted . patchId
+  , crudMsgCreated = SomeMessage . MsgLogPatchCreated . const ""
+  , crudMsgUpdated = SomeMessage . MsgLogPatchUpdated . const ""
+  , crudMsgDeleted = SomeMessage . MsgLogPatchDeleted . const ""
   }

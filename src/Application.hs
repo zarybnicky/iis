@@ -27,7 +27,6 @@ import Database.Persist.Postgresql
 #endif
 
 import ClassyPrelude.Yesod hiding (Request)
-import Cms.Crud.Route (CrudRoute)
 import Control.Monad.Logger (liftLoc, runLoggingT)
 import Foundation
 import Language.Haskell.TH.Syntax (qLocation)
@@ -42,22 +41,17 @@ import Network.Wai.Middleware.RequestLogger
 import Settings
 import System.Log.FastLogger
        (defaultBufSize, newStdoutLoggerSet, toLogStr)
-import Yesod.Auth (getAuth, requireAuthId)
+import Yesod.Auth (getAuth)
 import Yesod.Core.Types (loggerSet)
 import Yesod.Default.Config2
 
 import App.Common
 import App.Migrations (migrateAll, migrateCustom)
 
-import App.ActionLog.Model (ActionLog)
 import App.ActionLog.Handler
-import App.Module.Model (Module, ModuleId)
 import App.Module.Handler (handleModuleR)
-import App.Ticket.Model (Ticket, TicketId)
 import App.Ticket.Handler (handleTicketR)
-import App.Patch.Model (Patch)
 import App.Patch.Handler (handlePatchR)
-import App.Language.Model (Language)
 import App.Language.Handler (handleLanguageR)
 import App.User.Handler
 
@@ -94,7 +88,7 @@ makeFoundation appSettings = do
     (flip runSqlPool pool $ do
       runMigration migrateAll
       migrateCustom appSettings)
-Ticket    (messageLoggerSource theFoundation appLogger)
+    (messageLoggerSource theFoundation appLogger)
   return theFoundation
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
