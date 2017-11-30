@@ -1,0 +1,17 @@
+<header>
+  <div class="navbar navbar-fixed-top" role="navigation" data-0="line-height:100px; height:100px; background-color:rgba(0,0,0,0.3);" data-300="line-height:60px; height:60px; background-color:rgba(0,0,0,1);">
+    <div class="container">
+      <div class="navbar-header">
+        <h1><a class="navbar-brand" href="index.html" data-0="line-height:90px;" data-300="line-height:50px;">Bug Tracker
+      <div class="navbar-collapse collapse">
+        <ul>
+          $forall item <- navbarItems
+
+<main>
+  ^{widget}
+
+<footer class="section footer">
+  <div class="container">
+    <div class="row align-center copyright">
+      <div class="col-sm-12">
+      <p>© 2017 Jakub Zárybnický, Jiří Záleský
