@@ -1,57 +1,88 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-2">
-    
-    <title>Projekt IIS</title>
-    <style type="text/css">
-    	table { border-collapse: collapse; }
-    	td, th { border: 1px solid black; padding: 0.3em 0.5em; text-align: left; }
-    	dt { font-weight: bold; margin-top: 0.5em; }
-    </style>
-</head>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Projekt IIS</title>
+        <style type="text/css">
+    	 table { border-collapse: collapse; }
+    	 td, th { border: 1px solid black; padding: 0.3em 0.5em; text-align: left; }
+    	 dt { font-weight: bold; margin-top: 0.5em; }
+        </style>
+    </head>
 <body>
-
-<!-- Zkontrolujte prosím nastavení kódování v hlavičce dokumentu 
-     podle použitého editoru -->
-
-<h1>Bug Tracker</h1> <!-- Nahradte názvem svého zadání -->
-
-<dl>
-	<dt>Autoři</dt>
-	<dd>Jakub Zárybnický <!-- Nahraďte skutečným jménem a e-mailem autora a popisem činnosti -->
-	    <a href="mailto:xzaryb00@stud.fit.vutbr.cz">xzaryb00@stud.fit.vutbr.cz</a> -
-		správa uživatelů a uživatelské rozhraní
+    <h1>Bug Tracker</h1>
+    <dl>
+	<dt>AutoĹi</dt>
+	<dd>Jakub ZĂĄrybnickĂ˝
+            <a href="mailto:xzaryb00@stud.fit.vutbr.cz">xzaryb00@stud.fit.vutbr.cz</a>
+	    - sprĂĄva uĹživatelĹŻ a uĹživatelskĂŠ rozhranĂ­
 	</dd>
-	<dd>Jiří Záleský <!-- Nahraďte skutečným jménem a e-mailem autora a popisem činnosti -->
-	    <a href="mailto:xzales12@stud.fit.vutbr.cz">xzales12@stud.fit.vutbr.cz</a> - 
-		databázový subsystém
+	<dd>
+            JiĹĂ­ ZĂĄleskĂ˝
+	    <a href="mailto:xzales12@stud.fit.vutbr.cz">xzales12@stud.fit.vutbr.cz</a>
+            - databĂĄzovĂ˝ subsystĂŠm
 	</dd>
 	<dt>URL aplikace</dt>
-	<dd><a href="http://www.stud.fit.vutbr.cz/~xautor01/IIS">http://www.stud.fit.vutbr.cz/~xautor01/IIS</a></dd>
-	<dd>(pokud má aplikace více vstupních stránek, napište obdobně další URL)</dd>
-</dl>
+	<dd><a href="https://iis.zarybnicky.com">https://iis.zarybnicky.com</a></dd>
+	<dd>(pokud mĂĄ aplikace vĂ­ce vstupnĂ­ch strĂĄnek, napiĹĄte obdobnÄ dalĹĄĂ­ URL)</dd>
+    </dl>
 
-<h2>Uživatelé systému pro testování</h2>
-<p>Uveďte prosím existující zástupce <strong>všech rolí uživatelů</strong>.</p>
-<table>
-<tbody><tr><th>Login</th><th>Heslo</th><th>Role</th></tr>
-<tr><td>admin</td><td>admin</td><td>Administrátor</td></tr>
-<tr><td>prodavac</td><td>prodavac</td><td>Programátor</td></tr>
-<tr><td>franta</td><td>franta</td><td>Uživatel</td></tr>
-</tbody></table>
+    <h2>UĹživatelĂŠ systĂŠmu pro testovĂĄnĂ­</h2>
+    <table>
+        <thead>
+            <tr><th>Login</th><th>Heslo</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>admin</td><td>admin</td><td>AdministrĂĄtor</td></tr>
+            <tr><td>prog</td><td>prog</td><td>ProgramĂĄtor</td></tr>
+            <tr><td>user</td><td>user</td><td>UĹživatel</td></tr>
+        </tbody>
+    </table>
 
-<h2>Implementace</h2>
-<p>Stručná dokumentace k implementaci, která popisuje, které PHP skripty implementují jednotlivé případy použití uvedené v use-case diagramu z IDS. V případě, že bylo nutno při implementaci učinit změny v návrhu, musí být v dokumentaci zdůvodněny.</p>
+    <h2>Implementace</h2>
+    <p>
+        StruÄnĂĄ dokumentace k implementaci, kterĂĄ popisuje, kterĂŠ PHP skripty
+        implementujĂ­ jednotlivĂŠ pĹĂ­pady pouĹžitĂ­ uvedenĂŠ v use-case diagramu z
+        IDS. V pĹĂ­padÄ, Ĺže bylo nutno pĹi implementaci uÄinit zmÄny v nĂĄvrhu,
+        musĂ­ bĂ˝t v dokumentaci zdĹŻvodnÄny.
+    </p>
 
-<h2>Instalace</h2>
-<ul>
-<li>Pro nasazení na server lze využít binární soubor vygenerovaný překladem kódu, nebo deployment engine. V našem případě jsme využili právě možnost deployment enginu <a href=https://github.com/snoyberg/keter>Keter</a>.</li>
-<li>Softwarové požadavky (verze PHP apod.)</li>
-<li>Jak rozbalit, konfigurovat, inicializovat databází, ...</li>
-</ul>
+    <h2>Instalace</h2>
+    <ul>
+        <li>
+            Pro sestavenĂ­ je potĹeba funkÄnĂ­ instalace PostgreSQL a
+            <a href="https://docs.haskellstack.org/en/stable/README/">Stack</a>.
+            SestavenĂ­ se provede pĹĂ­kazy 'stack setup' (tĂ­m se stĂĄhne a
+            nainstaluje Haskell) a 'stack build' (staĹženĂ­ potĹebnĂ˝ch knihoven,
+            kompilace a linkovĂĄnĂ­ spustitelnĂŠho souboru). Alternativa k
+            PostgreSQL je SQLite, kterou je moĹžnĂŠ pouĹžĂ­t pĹi sestavenĂ­ pĹĂ­kazem
+            'stack build --flag iis:dev'.
+        </li>
+        <li>
+            Pro spuĹĄtÄnĂ­ je potĹeba vytvoĹit databĂĄzi v Postgres a sprĂĄvnÄ
+            nastavit promÄnnĂŠ prostĹedĂ­ PGUSER, PGPASS, PGHOST, PGPORT a
+            PGDATABASE. PĹĂ­kaz pro spuĹĄtÄnĂ­ aplikace je 'stack exec iis'.
+        </li>
+        <li>
+            Aplikaci je moĹžnĂŠ nasadit buÄ pouhĂ˝m zkopĂ­rovĂĄnĂ­m zkompilovanĂŠho
+            souboru (jedinĂ˝m pĹedpokladem je kompatibilnĂ­ verze glibc a libgmp,
+            ale pĹi kopĂ­rovĂĄnĂ­ s LinuxovĂŠho systĂŠmu na dalĹĄĂ­ LinuxovĂ˝ to
+            vÄtĹĄinou nenĂ­ problĂŠm), nebo zkompilovĂĄnĂ­m pĹĂ­mo na produkÄnĂ­m
+            stroji.
+            Instrumentace aplikace pak mĹŻĹže bĂ˝t zaĹĂ­zenĂĄ napĹ. pomocĂ­ init
+            skriptĹŻ, my jsme ale zvolili software, kterĂ˝ spojuje reverznĂ­ proxy
+            server se sprĂĄvou (i vĂ­ce) aplikacĂ­ a s tzv. 'bezeĹĄvĂ˝m nasazenĂ­m' -
+            <a href="https://github.com/snoyberg/keter">Keter</a>.
+        </li>
+    </ul>
 
-<h2>Známé problémy</h2>
-<p>Zde popište, které body zadání (IDS a IIS) nejsou implementovány a z jakého důvodu. Např. &#8222;Z časových důvodů nebyla implementována správa uživatelů.&#8221; Pomůžete tím zrychlit opravování, když neimplementované funkce nebudeme muset dlouze hledat.</p>
+    <h2>ZnĂĄmĂŠ problĂŠmy</h2>
+    <p>
+        Zde popiĹĄte, kterĂŠ body zadĂĄnĂ­ (IDS a IIS) nejsou implementovĂĄny a z
+        jakĂŠho dĹŻvodu. NapĹ. &#8222;Z ÄasovĂ˝ch dĹŻvodĹŻ nebyla implementovĂĄna
+        sprĂĄva uĹživatelĹŻ.&#8221; PomĹŻĹžete tĂ­m zrychlit opravovĂĄnĂ­, kdyĹž
+        neimplementovanĂŠ funkce nebudeme muset dlouze hledat.
+    </p>
 
-
-
-</body></html>
+</body>
+</html>
