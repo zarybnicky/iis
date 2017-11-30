@@ -8,11 +8,14 @@
 
 module Cms.Crud.Simple where
 
-import Cms.Crud (CrudDb(..), defaultCrudDb)
+import Cms.ActionLog.Class (CmsActionLog(..))
+import Cms.Crud (CrudDb(..), CrudMessages(..), defaultCrudDb)
 import Cms.Crud.Route
        (CrudHandler(..), CrudRoute(..), EditParent(..), PersistCrudEntity,
         ViewParent(..))
 import Data.Monoid ((<>))
+import qualified Data.Text as T
+import Data.Typeable
 import Yesod.Core
 import Yesod.Form
 import Yesod.Persist
@@ -27,6 +30,7 @@ data SimpleCrud site p c = SimpleCrud
   , scForm         :: Either p c -> Html -> MForm (HandlerT site IO) (FormResult c, WidgetT site IO ())
   , scFormWrap     :: Enctype -> Route site -> WidgetT site IO () -> WidgetT site IO ()
   , scCrudDb       :: CrudDb site p c (Entity c)
+  , scCrudMsg      :: CrudMessages site c
   , scMessageWrap  :: Html -> Html
   , scEditParent   :: EditParent
   , scViewParent   :: ViewParent site p
@@ -34,7 +38,7 @@ data SimpleCrud site p c = SimpleCrud
   }
 
 emptyParentlessSimpleCrud ::
-     PersistCrudEntity site c
+     (PersistCrudEntity site c, Typeable c)
   => (CrudRoute () c -> Route site)
   -> SimpleCrud site () c
 emptyParentlessSimpleCrud =
@@ -48,12 +52,13 @@ emptyParentlessSimpleCrud =
     (const $ const $ return (FormMissing, mempty)) -- delete form
     (const $ const $ const mempty) -- form wrapper
     defaultCrudDb
+    defaultCrudMessages
     id -- default message wrap
     EditParentIndex
     ViewParentIndex
 
 emptyChildSimpleCrud ::
-     PersistCrudEntity site c
+     (PersistCrudEntity site c, Typeable c)
   => (Key c -> YesodDB site p)
   -> (CrudRoute p c -> Route site)
   -> SimpleCrud site p c
@@ -68,6 +73,7 @@ emptyChildSimpleCrud getParent =
     (const $ const $ return (FormMissing, mempty)) -- delete form
     (const $ const $ const mempty) -- form wrapper
     db
+    defaultCrudMessages
     id -- default message wrap
     EditParentIndex
     ViewParentIndex
@@ -135,13 +141,13 @@ basicSimpleCrudIndex tp nameFunc p = do
   |]
 
 basicSimpleCrud ::
-     PersistCrudEntity site c
+     (PersistCrudEntity site c, Typeable c)
   => (CrudRoute () c -> Route site)
   -> SimpleCrud site () c
 basicSimpleCrud = applyBasicLayoutsAndForms . emptyParentlessSimpleCrud
 
 basicChildSimpleCrud ::
-     PersistCrudEntity site c
+     (PersistCrudEntity site c, Typeable c)
   => (Key c -> YesodDB site p)
   -> (CrudRoute p c -> Route site)
   -> SimpleCrud site p c
@@ -154,14 +160,17 @@ toCrudHandler ::
 toCrudHandler SimpleCrud {..} = CrudHandler {..}
   where
     CrudDb {..} = scCrudDb
+    CrudMessages {..} = scCrudMsg
     chIndex = scIndex
     chView = scView
     chDelete eid = do
       res <- runInputPostResult $ ireq textField "fake"
       case res of
         FormSuccess _ -> do
+          old <- runDB (get404 eid)
           p <- runDB (crudDbDelete eid)
-          setMessage $ scMessageWrap "You have deleted the resource."
+          logMsg (crudMsgDeleted old)
+          setMessageI (crudMsgDeleted old)
           redirect (scPromoteRoute $ IndexR p)
         _ -> return ()
       scDelete $ scFormWrap
@@ -169,29 +178,41 @@ toCrudHandler SimpleCrud {..} = CrudHandler {..}
         (scPromoteRoute $ DeleteR eid)
         ([whamlet|<input type="hidden" value="a" name="fake">|] <> scDeleteForm)
     chAdd p = do
-      (enctype, w) <-
-        do ((res, w), enctype) <- runFormPost . scForm $ Left p
-           case res of
-             FormSuccess a -> do
-               _ <- runDB (crudDbAdd p a)
-               setMessage $ scMessageWrap "You have created a new resource"
-               redirect $
-                 case scViewParent of
-                   ViewParentIndex -> scPromoteRoute $ IndexR p
-                   ViewParentOther f -> f p
-             _ -> return (enctype, w)
-      scAdd $ scFormWrap enctype (scPromoteRoute $ AddR p) w
+      ((res, w), enctype) <- runFormPost . scForm $ Left p
+      case res of
+        FormSuccess a -> do
+          _ <- runDB (crudDbAdd p a)
+          logMsg (crudMsgCreated a)
+          setMessageI (crudMsgCreated a)
+          redirect $
+            case scViewParent of
+              ViewParentIndex -> scPromoteRoute $ IndexR p
+              ViewParentOther f -> f p
+        _ -> scAdd $ scFormWrap enctype (scPromoteRoute $ AddR p) w
     chEdit eid = do
-      (enctype, w) <- do
-        old <- runDB $ get404 eid
-        ((res, w), enctype) <- runFormPost . scForm $ Right old
-        case res of
-          FormSuccess new -> do
-            p <- runDB (crudDbEdit eid new)
-            setMessage $ scMessageWrap "You have updated the resource."
-            redirect . scPromoteRoute $
-              case scEditParent of
-                EditParentView -> ViewR eid
-                EditParentIndex -> IndexR p
-          _ -> return (enctype, w)
-      scEdit $ scFormWrap enctype (scPromoteRoute $ EditR eid) w
+      old <- runDB $ get404 eid
+      ((res, w), enctype) <- runFormPost . scForm $ Right old
+      case res of
+        FormSuccess new -> do
+          p <- runDB (crudDbEdit eid new)
+          logMsg (crudMsgUpdated new)
+          setMessageI (crudMsgUpdated new)
+          redirect . scPromoteRoute $
+            case scEditParent of
+              EditParentView -> ViewR eid
+              EditParentIndex -> IndexR p
+        _ -> scEdit $ scFormWrap enctype (scPromoteRoute $ EditR eid) w
+
+defaultCrudMessages :: Typeable e => CrudMessages site e
+defaultCrudMessages = CrudMessages
+  (SomeMessage ("Index" :: T.Text))
+  (SomeMessage ("Add" :: T.Text))
+  (SomeMessage ("Edit" :: T.Text))
+  (SomeMessage ("Back" :: T.Text))
+  (SomeMessage ("Delete" :: T.Text))
+  (SomeMessage ("No entities found" :: T.Text))
+  (\x -> SomeMessage ("Entity " <> ctrName x <> " created" :: T.Text))
+  (\x -> SomeMessage ("Entity " <> ctrName x <> " updated" :: T.Text))
+  (\x -> SomeMessage ("Entity " <> ctrName x <> " deleted" :: T.Text))
+  where
+    ctrName = T.pack . tyConName . typeRepTyCon . typeOf
