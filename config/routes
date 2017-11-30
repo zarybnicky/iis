@@ -18,9 +18,9 @@
 
 -- SimpleCRUD routes
 /modules/*CrudRoute-Unit-Module             ModuleR
-/tickets/*CrudRoute-ModuleId-Ticket         TicketR
-/patches/*CrudRoute-TicketId-Patch          PatchR
+/patches/*CrudRoute-Unit-Patch              PatchR
 /languages/*CrudRoute-Unit-Language         LanguageR
+/tickets/*CrudRoute-ModuleId-Ticket         TicketR
 
 -- Hopefully made obsolete by parent-ful CRUD...
 -- /modules/#ModuleId/tickets

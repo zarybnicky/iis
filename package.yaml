@@ -27,6 +27,7 @@ dependencies:
 - gravatar
 - hjsmin
 - http-conduit
+- lens
 - lifted-base
 - mime-mail
 - monad-logger

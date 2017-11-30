@@ -67,9 +67,6 @@ data AppSettings = AppSettings
     -- ^ Copyright text to appear in the footer of the page
     , appAnalytics              :: Maybe T.Text
     -- ^ Google Analytics code
-
-    , appAdmin                  :: T.Text
-    -- ^ Default admin email address
     }
 
 instance FromJSON AppSettings where
@@ -95,8 +92,6 @@ instance FromJSON AppSettings where
 
         appCopyright              <- o .:  "copyright"
         appAnalytics              <- o .:? "analytics"
-
-        appAdmin                  <- o .: "admin"
 
         return AppSettings {..}
 

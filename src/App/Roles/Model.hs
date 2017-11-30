@@ -14,9 +14,10 @@ module App.Roles.Model
   , EntityField(..)
   , Unique(..)
   , migrateRoles
+  , module App.Roles.Types
   ) where
 
-import App.Roles.Types (RoleName)
+import App.Roles.Types
 import App.User.Model (UserId)
 import ClassyPrelude.Yesod
 

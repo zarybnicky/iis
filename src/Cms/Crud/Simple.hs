@@ -31,7 +31,6 @@ data SimpleCrud site p c = SimpleCrud
   , scFormWrap     :: Enctype -> Route site -> WidgetT site IO () -> WidgetT site IO ()
   , scCrudDb       :: CrudDb site p c (Entity c)
   , scCrudMsg      :: CrudMessages site c
-  , scMessageWrap  :: Html -> Html
   , scEditParent   :: EditParent
   , scViewParent   :: ViewParent site p
   , scPromoteRoute :: CrudRoute p c -> Route site
@@ -48,12 +47,11 @@ emptyParentlessSimpleCrud =
     (const $ return mempty) -- view
     (const $ return mempty) -- edit
     (const $ return mempty) -- delete
-    mempty
-    (const $ const $ return (FormMissing, mempty)) -- delete form
+    mempty -- delete form
+    (const $ const $ return (FormMissing, mempty))
     (const $ const $ const mempty) -- form wrapper
     defaultCrudDb
     defaultCrudMessages
-    id -- default message wrap
     EditParentIndex
     ViewParentIndex
 
@@ -69,12 +67,11 @@ emptyChildSimpleCrud getParent =
     (const $ return mempty) -- view
     (const $ return mempty) -- edit
     (const $ return mempty) -- delete
-    mempty
-    (const $ const $ return (FormMissing, mempty)) -- delete form
+    mempty -- delete form
+    (const $ const $ return (FormMissing, mempty))
     (const $ const $ const mempty) -- form wrapper
     db
     defaultCrudMessages
-    id -- default message wrap
     EditParentIndex
     ViewParentIndex
   where

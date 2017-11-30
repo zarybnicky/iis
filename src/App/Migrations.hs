@@ -8,19 +8,31 @@ module App.Migrations
   ) where
 
 import App.ActionLog.Model
+import App.Bug.Model
+import App.Language.Model
+import App.Module.Model
+import App.Patch.Model
 import App.Roles.Model
+import App.Ticket.Model
 import App.User.Model
-
+import App.Vulnerability.Model
 import ClassyPrelude.Yesod
-import Database.Persist.Sql (Migration)
+import qualified Data.Text.IO as T
+import Database.Persist.Sql (Migration, toSqlKey)
 import Settings (AppSettings(..), generateUUID)
 import Yesod.Auth.HashDB (setPassword)
 
 migrateAll :: Migration
 migrateAll = sequence_
   [ migrateActionLog
+  , migrateBug
+  , migrateLanguage
+  , migrateModule
+  , migratePatch
   , migrateRoles
+  , migrateTicket
   , migrateUser
+  , migrateVulnerability
   ]
 
 migrateCustom
@@ -32,41 +44,52 @@ migrateCustom
   => AppSettings -> ReaderT backend m ()
 migrateCustom s =
   sequence_ . fmap ($ s) $
-  [ insertFirstAdmin
+  [ insertUsers
   ]
 
-insertFirstAdmin
+insertUsers
   :: ( BaseBackend backend ~ SqlBackend
      , PersistStoreWrite backend
      , PersistUniqueRead backend
      , MonadIO m
      )
   => AppSettings -> ReaderT backend m ()
-insertFirstAdmin s = do
-  let admin = appAdmin s
-  madmin <- getBy (UniqueEmail admin)
-  case madmin of
-    Just _ -> liftIO $ putStrLn "Admin user exists."
-    Nothing -> do
-      liftIO . putStrLn $ "No admin found, creating one (" ++ admin ++ ")..."
-      timeNow <- liftIO getCurrentTime
-      uuid <- liftIO generateUUID
-      u <- setPassword "admin"
-        User
-        { userIdent = uuid
-        , userPassword = Nothing
-        , userEmail = admin
-        , userFirstName = "First"
-        , userLastName = "Last"
-        , userBirthNumber = 0
-        , userAddress = Nothing
-        , userCity = Nothing
-        , userPostalCode = Nothing
-        , userActive = True
-        , userToken = Nothing
-        , userCreatedAt = timeNow
-        , userLastLogin = Nothing
-        , userDeletedAt = Nothing
-        }
-      uid <- insert u
-      mapM_ (insert_ . UserRole uid) [minBound .. maxBound]
+insertUsers _ = do
+  now <- liftIO getCurrentTime
+  admin <- liftIO $ mkUser now "Admin" "Text" "admin@iis.zarybnicky.com" "admin"
+  prog <- liftIO $ mkUser now "Programmer" "Text" "programmer@iis.zarybnicky.com" "programmer"
+  user <- liftIO $ mkUser now "User" "Text" "user@iis.zarybnicky.com" "user"
+  let users =
+        [ (admin, Just (\u -> Programmer u 1 100 500), [RoleProgrammer, RoleAdmin])
+        , (prog, Just (\u -> Programmer u 2 100 150), [RoleProgrammer])
+        , (user, Nothing, [])
+        ]
+  forM_ users $ \(u, p, rs) -> do
+    mu <- getBy (UniqueEmail $ userEmail u)
+    case mu of
+      Just _ -> liftIO . T.putStrLn $ "User " <> userEmail u <> " exists."
+      Nothing -> do
+        liftIO . T.putStrLn $ "User " <> userEmail u <> "found, creating them."
+        uid <- insert u
+        maybe (return ()) (void . insert . ($ uid)) p
+        mapM_ (insert_ . UserRole uid) rs
+
+mkUser :: UTCTime -> Text -> Text -> Text -> Text -> IO User
+mkUser now name surname email pass = do
+  uuid <- liftIO generateUUID
+  setPassword pass $
+    User
+      uuid
+      Nothing
+      email
+      name
+      surname
+      0
+      Nothing
+      Nothing
+      Nothing
+      True
+      Nothing
+      now
+      Nothing
+      Nothing

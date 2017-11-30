@@ -8,8 +8,7 @@
 module App.Patch.Handler where
 
 import App.User.Model (User(..), Programmer(..), EntityField(..))
-import App.Patch.Model (Patch(..))
-import App.Ticket.Model (TicketId)
+import App.Patch.Model (Patch(..), patchName)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
 import Cms.Crud
 import Cms.Crud.Route
@@ -21,23 +20,26 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Form.Bootstrap3
 
-handlePatchR :: CrudRoute TicketId Patch -> Handler Html
-handlePatchR = error "Requires 'SimpleCrud'"
- -- handleCrud . flip simplerCrudToHandler PatchR $
- -- SimplerCrud
- -- { crudSimplerMsg = patchMessages
- -- , crudSimplerDb = defaultCrudDb
- -- , crudSimplerForm = patchForm
- -- , crudSimplerTable =
- --     encodeClickableTable $
- --     mconcat
- --       [ headed "Name" $ \(e, mr) ->
- --           case mr of
- --             Nothing -> toHtml . patchName $ entityVal e
- --             Just r ->
- --               H.a (toHtml . patchName $ entityVal e) H.! H.href (H.toValue r)
- --       ]
- -- }
+handlePatchR :: CrudRoute () Patch -> Handler Html
+handlePatchR =
+  handleCrud . flip simplerCrudToHandler PatchR $
+  SimplerCrud
+  { crudSimplerMsg = patchMessages
+  , crudSimplerDb = defaultCrudDb
+  , crudSimplerForm = patchForm
+  , crudSimplerTable =
+      encodeClickableTable $
+      mconcat
+        [ headed "Name" $ \(e, mr) ->
+            case mr of
+              Nothing ->
+                toHtml . patchName $ entityVal e
+              Just r ->
+                H.a
+                  (toHtml . patchName $ entityVal e) H.!
+                H.href (H.toValue r)
+        ]
+  }
 
 patchForm :: Maybe Patch -> UTCTime -> Form Patch
 patchForm m _ =
@@ -69,7 +71,7 @@ patchMessages = CrudMessages
   , crudMsgNew = SomeMessage MsgPatchAdminNew
   , crudMsgEdit = SomeMessage MsgPatchAdminEdit
   , crudMsgNoEntities = SomeMessage MsgNoPatchFound
-  , crudMsgCreated = SomeMessage . MsgLogPatchCreated . const ""
-  , crudMsgUpdated = SomeMessage . MsgLogPatchUpdated . const ""
-  , crudMsgDeleted = SomeMessage . MsgLogPatchDeleted . const ""
+  , crudMsgCreated = SomeMessage . MsgLogPatchCreated . patchName
+  , crudMsgUpdated = SomeMessage . MsgLogPatchUpdated . patchName
+  , crudMsgDeleted = SomeMessage . MsgLogPatchDeleted . patchName
   }

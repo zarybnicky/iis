@@ -7,9 +7,8 @@ module App.Roles.Types
 import ClassyPrelude.Yesod
 
 data RoleName
-  = User
-  | Programmer
-  | Admin
+  = RoleProgrammer
+  | RoleAdmin
   deriving (Eq, Ord, Show, Read, Enum, Bounded, Typeable)
 
 derivePersistField "RoleName"

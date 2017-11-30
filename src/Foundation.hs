@@ -236,7 +236,7 @@ instance CmsRoles App where
   actionAllowedFor RobotsR "GET" = AllowAll
   actionAllowedFor HomeR "GET" = AllowAll
   actionAllowedFor (AuthR _) _ = AllowAll
-  actionAllowedFor _ _ = AllowRoles $ S.fromList [Admin]
+  actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
 
   -- cache user roles to reduce the amount of DB calls
   getUserRoles userId =
@@ -254,7 +254,7 @@ instance CmsRoles App where
   mayAssignRoles = do
     authId <- requireAuthId
     roles <- getUserRoles authId
-    return $ S.member Admin roles
+    return $ S.member RoleAdmin roles
 
 defaultAdminAuthLayout :: Widget -> Handler Html
 defaultAdminAuthLayout widget = do

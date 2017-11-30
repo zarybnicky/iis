@@ -13,10 +13,12 @@ module App.Patch.Model
   , Patch(..)
   , EntityField(..)
   , migratePatch
+  , patchName
   ) where
 
-import ClassyPrelude.Yesod
 import App.User.Model (ProgrammerId, UserId)
+import ClassyPrelude.Yesod
+import qualified Data.Text as T
 import Data.Time (Day)
 
 share [mkPersist sqlSettings, mkMigrate "migratePatch"] [persistLowerCase|
@@ -27,3 +29,6 @@ Patch
     approved ProgrammerId Maybe
     approvalDate Day Maybe
 |]
+
+patchName :: Patch -> Text
+patchName = (<> "...") . T.take 20 . patchContent

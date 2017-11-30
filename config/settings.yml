@@ -33,5 +33,3 @@ database:
 
 copyright: Insert copyright statement here
 #analytics: UA-YOURCODE
-
-admin: "_env:LAMBDACMS_ADMIN:jakub@zarybnicky.com"
