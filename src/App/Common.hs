@@ -13,10 +13,11 @@ module App.Common where
 import ClassyPrelude.Yesod hiding (Request)
 import Data.FileEmbed (embedFile)
 import Foundation
+import Settings (widgetFile)
 import Yesod.Auth (requireAuthId)
 
 getHomeR :: Handler Html
-getHomeR = defaultLayout [whamlet|<h1>text|]
+getHomeR = defaultLayout $ $(widgetFile "homepage")
 
 getProfileR :: Handler Html
 getProfileR = do

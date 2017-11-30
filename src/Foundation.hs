@@ -40,6 +40,7 @@ import Message
 import Network.Mail.SMTP (sendMailWithLogin)
 import qualified Network.Wai as W
 import Settings
+import Settings.StaticFiles
 import Text.Hamlet (hamletFile)
 import Text.Jasmine (minifym)
 import Yesod.Auth
@@ -123,6 +124,9 @@ instance Yesod App where
     let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
 
     pc <- widgetToPageContent $ do
+      addStylesheet $ StaticR fontawesome_font_awesome_min_css
+      addStylesheet $ StaticR bootstrap_bootstrap_min_css
+      addScript $ StaticR bootstrap_bootstrap_min_js
       $(widgetFile "default-layout")
     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
@@ -160,18 +164,18 @@ instance YesodBreadcrumbs App where
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance RenderMessage App FormMessage where
-    renderMessage _ _ = defaultFormMessage
+  renderMessage _ _ = defaultFormMessage
 
 instance RenderMessage App AppMessage where
   renderMessage _ = renderAppMessage
 
 -- How to run database actions.
 instance YesodPersist App where
-    type YesodPersistBackend App = SqlBackend
-    runDB action = getYesod >>= runSqlPool action . appConnPool
+  type YesodPersistBackend App = SqlBackend
+  runDB action = getYesod >>= runSqlPool action . appConnPool
 
 instance YesodPersistRunner App where
-    getDBRunner = defaultGetDBRunner appConnPool
+  getDBRunner = defaultGetDBRunner appConnPool
 
 instance YesodAuth App where
   type AuthId App = UserId
