@@ -6,6 +6,7 @@
 /auth                   AuthR              Auth getAuth
 /activate/#UserId/#Text UserAdminActivateR GET POST
 /profile                ProfileR           GET POST
+/registration           RegistrationR      GET POST
 /users UserAdminR:
     /              UserAdminIndexR         GET
     /new           UserAdminNewR           GET POST

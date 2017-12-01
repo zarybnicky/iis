@@ -109,6 +109,11 @@ instance Yesod App where
           ]
     let navbarRightMenuItems =
           [ MenuItem
+            { menuItemLabel = "Create Account"
+            , menuItemRoute = RegistrationR
+            , menuItemAccessCallback = isNothing muser
+            }
+          , MenuItem
             { menuItemLabel = "Login"
             , menuItemRoute = AuthR LoginR
             , menuItemAccessCallback = isNothing muser
@@ -236,6 +241,7 @@ instance CmsRoles App where
   actionAllowedFor RobotsR "GET" = AllowAll
   actionAllowedFor HomeR "GET" = AllowAll
   actionAllowedFor (AuthR _) _ = AllowAll
+  actionAllowedFor RegistrationR _ = AllowAll
   actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
 
   -- cache user roles to reduce the amount of DB calls

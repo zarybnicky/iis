@@ -31,3 +31,23 @@ postProfileR = getProfileR
 getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
                     $ toContent $(embedFile "config/robots.txt")
+
+getRegistrationR :: Handler Html
+getRegistrationR = do
+    ((res, form), enctype) <- myForm
+    defaultLayout $ $(widgetFile "registration")
+
+myForm = runFormPost $ renderDivs $ pure (,,,,,,,,,)
+    <*> pure "Register form"
+    <*> areq textField "First Name" Nothing
+    <*> areq textField "Last Name" Nothing
+    <*> areq textField "Email" Nothing
+    <*> areq textField "Password" Nothing
+    <*> areq textField "Confirm Password" Nothing
+    <*> areq intField "Birth Number" Nothing
+    <*> aopt textField "Address" Nothing
+    <*> aopt textField "City" Nothing
+    <*> aopt intField "Postal Code" Nothing
+
+postRegistrationR :: Handler Html
+postRegistrationR = getRegistrationR

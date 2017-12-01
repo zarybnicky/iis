@@ -38,7 +38,8 @@ Confirm: Confirm
 Submit: Submit
 Change: Change
 Remove: Remove
-BackHome: back to homepage
+BackHome: Back to homepage
+Registration: Create Account
 Deactivate: Deactivate
 Activate: Activate
 
