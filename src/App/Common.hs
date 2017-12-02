@@ -22,14 +22,9 @@ getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
                     $ toContent $(embedFile "config/robots.txt")
 
-getPatchR :: Handler Html
-getPatchR = postPatchR
-
-postPatchR :: Handler Html
-postPatchR = defaultLayout [whamlet|<h1>text|]
-
 getModuleR :: Handler Html
 getModuleR = postModuleR
 
 postModuleR :: Handler Html
-postModuleR = return mempty
+postModuleR = defaultLayout [whamlet|<h1>text|]
+
