@@ -65,15 +65,13 @@ getAccountsR :: Handler Html
 getAccountsR = do
   users <- runDB $ selectList [] []
   defaultLayout $ do
-    setTitle "Accounts"   
+    setTitle "Accounts"
     [whamlet|
       <h1>Accounts
         <table>
           <thead>
             <tr>
-              <th>Identificaton
               <th>Email
-              <th>Password
               <th>First Name
               <th>Last Name
               <th>Birth Number
@@ -83,15 +81,13 @@ getAccountsR = do
           <tbody>
             $forall Entity _ userData <- users
               <tr>
-                <td>#{userIdent userData}
-                <td>#{userEmail userData}   
-                <td>#{userPassword userData}
-                <td>#{userFirstName userData} 
-                <td>#{userLastName userData} 
-                <td>#{userBirthNumber userData}    
-                <td>#{userAddress userData} 
-                <td>#{userCity userData} 
-                <td>#{userPostalCode userData} 
+                <td>#{userEmail userData}
+                <td>#{userFirstName userData}
+                <td>#{userLastName userData}
+                <td>#{userBirthNumber userData}
+                <td>#{fromMaybe "" (userAddress userData)}
+                <td>#{fromMaybe "" (userCity userData)}
+                <td>#{maybe "" show (userPostalCode userData)}
     |]
 
 postAccountsR :: Handler Html
