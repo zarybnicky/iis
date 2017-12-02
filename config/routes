@@ -7,6 +7,9 @@
 /activate/#UserId/#Text UserAdminActivateR GET POST
 /profile                ProfileR           GET POST
 /registration           RegistrationR      GET POST
+/patch                  PatR               GET POST
+/module                 ModR               GET POST
+/ticket                 TickR              GET POST
 /users UserAdminR:
     /              UserAdminIndexR         GET
     /new           UserAdminNewR           GET POST

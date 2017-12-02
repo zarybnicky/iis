@@ -102,8 +102,18 @@ instance Yesod App where
             , menuItemAccessCallback = True
             }
           , MenuItem
-            { menuItemLabel = "Profile"
-            , menuItemRoute = ProfileR
+            { menuItemLabel = "Ticket"
+            , menuItemRoute = TickR
+            , menuItemAccessCallback = isJust muser
+            }
+          , MenuItem
+            { menuItemLabel = "Patch"
+            , menuItemRoute = PatR
+            , menuItemAccessCallback = isJust muser
+            }
+          , MenuItem
+            { menuItemLabel = "Module"
+            , menuItemRoute = ModR
             , menuItemAccessCallback = isJust muser
             }
           ]
@@ -117,6 +127,11 @@ instance Yesod App where
             { menuItemLabel = "Login"
             , menuItemRoute = AuthR LoginR
             , menuItemAccessCallback = isNothing muser
+            }
+          , MenuItem
+            { menuItemLabel = "Profile"
+            , menuItemRoute = ProfileR
+            , menuItemAccessCallback = isJust muser
             }
           , MenuItem
             { menuItemLabel = "Logout"
@@ -166,6 +181,10 @@ instance YesodBreadcrumbs App where
   breadcrumb HomeR = return ("Home", Nothing)
   breadcrumb (AuthR _) = return ("Login", Just HomeR)
   breadcrumb ProfileR = return ("Profile", Just HomeR)
+  breadcrumb RegistrationR = return ("Registration", Just HomeR)
+  breadcrumb TickR = return ("Ticket", Just HomeR)
+  breadcrumb ModR = return ("Module", Just HomeR)
+  breadcrumb PatR = return ("Patch", Just HomeR)
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance RenderMessage App FormMessage where
@@ -242,6 +261,9 @@ instance CmsRoles App where
   actionAllowedFor HomeR "GET" = AllowAll
   actionAllowedFor (AuthR _) _ = AllowAll
   actionAllowedFor RegistrationR _ = AllowAll
+  actionAllowedFor ModR _ = AllowRoles $ S.fromList [RoleProgrammer]
+  actionAllowedFor PatR _ = AllowAll
+  actionAllowedFor TickR _ = AllowAll
   actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
 
   -- cache user roles to reduce the amount of DB calls

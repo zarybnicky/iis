@@ -34,10 +34,10 @@ getRobotsR = return $ TypedContent typePlain
 
 getRegistrationR :: Handler Html
 getRegistrationR = do
-    ((res, form), enctype) <- myForm
+    ((res, form), enctype) <- regForm
     defaultLayout $ $(widgetFile "registration")
 
-myForm = runFormPost $ renderDivs $ pure (,,,,,,,,,)
+regForm = runFormPost $ renderDivs $ pure (,,,,,,,,,)
     <*> pure "Register form"
     <*> areq textField "First Name" Nothing
     <*> areq textField "Last Name" Nothing
@@ -51,3 +51,34 @@ myForm = runFormPost $ renderDivs $ pure (,,,,,,,,,)
 
 postRegistrationR :: Handler Html
 postRegistrationR = getRegistrationR
+
+ticketForm = runFormPost $ renderDivs $ pure (,,)
+    <*> pure "Create Ticket"
+    <*> areq textField "Subject" Nothing
+    <*> areq textareaField "Bug Description" Nothing
+   
+getTickR :: Handler Html
+getTickR = do
+    ((res, form), enctype) <- ticketForm
+    defaultLayout [whamlet|
+        <form enctype=#{enctype}>
+        ^{form}
+        <input type=submit>
+    |]
+
+postTickR :: Handler Html
+postTickR = getModR
+
+getPatR :: Handler Html
+getPatR = defaultLayout [whamlet|<h1>text|]
+
+postPatR :: Handler Html
+postPatR = getPatR
+
+getModR :: Handler Html
+getModR = do
+    ((res, form), enctype) <- regForm
+    defaultLayout $ $(widgetFile "registration")
+
+postModR :: Handler Html
+postModR = getModR
