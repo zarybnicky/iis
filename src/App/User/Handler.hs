@@ -28,8 +28,6 @@ module App.User.Handler
   , postProfileR
   , getRegistrationR
   , postRegistrationR
-  , getAccountsR
-  , postAccountsR
   ) where
 
 import App.User.Model (UserId, User(..), EntityField(..), sendMailToUser)
@@ -60,38 +58,6 @@ getProfileR = do
 
 postProfileR :: Handler Html
 postProfileR = getProfileR
-
-getAccountsR :: Handler Html
-getAccountsR = do
-  users <- runDB $ selectList [] []
-  defaultLayout $ do
-    setTitle "Accounts"
-    [whamlet|
-      <h1>Accounts
-        <table>
-          <thead>
-            <tr>
-              <th>Email
-              <th>First Name
-              <th>Last Name
-              <th>Birth Number
-              <th>Address
-              <th>City
-              <th>Postal Code
-          <tbody>
-            $forall Entity _ userData <- users
-              <tr>
-                <td>#{userEmail userData}
-                <td>#{userFirstName userData}
-                <td>#{userLastName userData}
-                <td>#{userBirthNumber userData}
-                <td>#{fromMaybe "" (userAddress userData)}
-                <td>#{fromMaybe "" (userCity userData)}
-                <td>#{maybe "" show (userPostalCode userData)}
-    |]
-
-postAccountsR :: Handler Html
-postAccountsR = getAccountsR
 
 getRegistrationR :: Handler Html
 getRegistrationR = postRegistrationR
@@ -306,32 +272,30 @@ postUserAdminNewR = do
       logMsg $ MsgLogUserCreated (userEmail user)
       setMessageI MsgSuccessCreate
       redirectUltDest $ UserAdminR UserAdminIndexR
-    _ ->
-      do
-        can <- getCan
-        adminLayout $ do
-          setTitleI MsgNewUser
-          $(widgetFile "user/new")
+    _ -> do
+      can <- getCan
+      adminLayout $ do
+        setTitleI MsgNewUser
+        $(widgetFile "user/new")
 
 -- | Show the forms to edit an existing user.
 getUserAdminEditR :: UserId -> Handler Html
 getUserAdminEditR userId = do
   timeNow <- liftIO getCurrentTime
-  do
-    authId <- requireAuthId
-    can <- getCan
-    user <- runDB $ get404 userId
-    urs <- getUserRoles userId
-    hrtLocale <- getHumanTimeLocale
-    (formWidget, enctype) <-
-      generateFormPost $
-      accountSettingsForm user urs (Just MsgSave) -- user form
-    (pwFormWidget, pwEnctype) <-
-      generateFormPost $
-      userChangePasswordForm Nothing (Just MsgChange) -- user password form
-    adminLayout $ do
-      setTitleI . MsgEditUser $ userEmail user
-      $(widgetFile "user/edit")
+  authId <- requireAuthId
+  can <- getCan
+  user <- runDB $ get404 userId
+  urs <- getUserRoles userId
+  hrtLocale <- getHumanTimeLocale
+  (formWidget, enctype) <-
+    generateFormPost $
+    accountSettingsForm user urs (Just MsgSave) -- user form
+  (pwFormWidget, pwEnctype) <-
+    generateFormPost $
+    userChangePasswordForm Nothing (Just MsgChange) -- user password form
+  adminLayout $ do
+    setTitleI . MsgEditUser $ userEmail user
+    $(widgetFile "user/edit")
 
 -- | Change a user's main properties.
 patchUserAdminEditR :: UserId -> Handler Html
@@ -343,19 +307,17 @@ patchUserAdminEditR userId = do
     runFormPost $ accountSettingsForm user urs (Just MsgSave)
   case formResult of
     FormSuccess (updatedUser, updatedRoles) -> do
-      do
-        _ <- runDB $ replace userId updatedUser
-        setUserRoles userId (S.fromList updatedRoles)
-        logMsg $ MsgLogUserUpdated (userEmail updatedUser)
-        setMessageI MsgSuccessReplace
+      _ <- runDB $ replace userId updatedUser
+      setUserRoles userId (S.fromList updatedRoles)
+      logMsg $ MsgLogUserUpdated (userEmail updatedUser)
+      setMessageI MsgSuccessReplace
       redirect . UserAdminR $ UserAdminEditR userId
-    _ ->
-      do
-        authId <- requireAuthId
-        can <- getCan
-        adminLayout $ do
-          setTitleI . MsgEditUser $ userEmail user
-          $(widgetFile "user/edit")
+    _ -> do
+      authId <- requireAuthId
+      can <- getCan
+      adminLayout $ do
+        setTitleI . MsgEditUser $ userEmail user
+        $(widgetFile "user/edit")
 
 -- | Helper function to get data required for some DB updates operations in
 -- handlers.  Removes code duplication.
@@ -371,28 +333,26 @@ updateHelper userId = do
 chpassUserAdminEditR :: UserId -> Handler Html
 chpassUserAdminEditR userId = do
   authId <- requireAuthId
-  if userId == authId
-    then do
-      (user, timeNow, hrtLocale, urs) <- updateHelper userId
-      (formWidget, enctype) <-
-        generateFormPost $ accountSettingsForm user urs (Just MsgSave)
-      opw <- lookupPostParam "original-pw"
-      ((formResult, pwFormWidget), pwEnctype) <-
-        runFormPost $ userChangePasswordForm opw (Just MsgChange)
-      case formResult of
-        FormSuccess f -> do
-          saltedPassword <- liftIO . saltPass $ originalPassword f
-          _ <- runDB $ update userId [UserPassword =. Just saltedPassword]
-          logMsg $ MsgLogUserChangedPassword (userEmail user)
-          setMessageI MsgSuccessChgPwd
-          redirect . UserAdminR $ UserAdminEditR userId
-        _ ->
-          do
-            can <- getCan
-            adminLayout $ do
-              setTitleI . MsgEditUser $ userEmail user
-              $(widgetFile "user/edit")
-    else error "Can't change this uses password"
+  when (userId /= authId) (permissionDenied "You can change only your own password")
+
+  (user, timeNow, hrtLocale, urs) <- updateHelper userId
+  (formWidget, enctype) <-
+    generateFormPost $ accountSettingsForm user urs (Just MsgSave)
+  opw <- lookupPostParam "original-pw"
+  ((formResult, pwFormWidget), pwEnctype) <-
+    runFormPost $ userChangePasswordForm opw (Just MsgChange)
+  case formResult of
+    FormSuccess f -> do
+      saltedPassword <- liftIO . saltPass $ originalPassword f
+      _ <- runDB $ update userId [UserPassword =. Just saltedPassword]
+      logMsg $ MsgLogUserChangedPassword (userEmail user)
+      setMessageI MsgSuccessChgPwd
+      redirect . UserAdminR $ UserAdminEditR userId
+    _ -> do
+      can <- getCan
+      adminLayout $ do
+        setTitleI . MsgEditUser $ userEmail user
+        $(widgetFile "user/edit")
 
 -- | Request a user's password to be reset.
 rqpassUserAdminEditR :: UserId -> Handler Html
@@ -438,21 +398,20 @@ activateUserAdminEditR userId = do
 -- TODO: Don\'t /actually/ delete the DB record!
 deleteUserAdminEditR :: UserId -> Handler Html
 deleteUserAdminEditR userId = do
-  do
-    user' <- runDB $ get404 userId
-    timeNow <- liftIO getCurrentTime
-    uuid <- liftIO generateUUID
-    let random = T.takeWhile (/= '-') uuid
-    let user =
-          user'
-          { userEmail = random <> "@@@" <> userEmail user'
-          , userToken = Nothing
-          , userActive = False
-          , userDeletedAt = Just timeNow
-          }
-    _ <- runDB $ replace userId user
-    logMsg $ MsgLogUserDeleted (userEmail user)
-    setMessageI MsgSuccessDelete
+  user' <- runDB $ get404 userId
+  timeNow <- liftIO getCurrentTime
+  uuid <- liftIO generateUUID
+  let random = T.takeWhile (/= '-') uuid
+  let user =
+        user'
+        { userEmail = random <> "@@@" <> userEmail user'
+        , userToken = Nothing
+        , userActive = False
+        , userDeletedAt = Just timeNow
+        }
+  _ <- runDB $ replace userId user
+  logMsg $ MsgLogUserDeleted (userEmail user)
+  setMessageI MsgSuccessDelete
   redirectUltDest $ UserAdminR UserAdminIndexR
 
 -- | Active an account by emailed activation link.

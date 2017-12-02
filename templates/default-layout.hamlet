@@ -10,11 +10,11 @@
             Bug Tracker
       <div #navbar .navbar-collapse.collapse>
         <ul .nav.navbar-nav>
-          $forall MenuItem label route _ <- navbarLeft
+          $forall (label, route) <- navbarLeft
             <li :Just route == mcurrentRoute:.active>
               <a href="@{route}">#{label}
         <ul .nav.navbar-nav.navbar-right>
-          $forall MenuItem label route _ <- navbarRight
+          $forall (label, route) <- navbarRight
             <li :Just route == mcurrentRoute:.active>
               <a href="@{route}">#{label}
 

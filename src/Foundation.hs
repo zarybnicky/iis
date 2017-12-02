@@ -26,6 +26,7 @@ import Cms.Class (Cms(..))
 import Cms.Crud.Route (CrudRoute(..))
 import Cms.Mailer.Class
 import Cms.Roles.Class (CmsRoles(..), Allow(..), getCan)
+import Control.Monad.Trans.Writer.Lazy (execWriter, tell)
 import qualified Data.CaseInsensitive as CI
 import Data.Maybe (isJust)
 import Data.Ord (comparing)
@@ -58,16 +59,6 @@ data App = App
   , appLogger :: Logger
   }
 
-data MenuItem = MenuItem
-    { menuItemLabel :: Text
-    , menuItemRoute :: Route App
-    , menuItemAccessCallback :: Bool
-    }
-
-data MenuTypes
-    = NavbarLeft MenuItem
-    | NavbarRight MenuItem
-
 type Unit = ()
 
 mkYesodData "App" $(parseRoutesFile "config/routes")
@@ -96,20 +87,21 @@ instance Yesod App where
 
     (title, parents) <- breadcrumbs
 
-    let mkMenu n r = MenuItem n r (isJust $ can r "GET")
-    let navbarLeft = filter menuItemAccessCallback
-          [ MenuItem "Home" HomeR True
-          , mkMenu "Ticket" TicketR
-          , mkMenu "Patch" PatchR
-          , mkMenu "Module" ModuleR
-          , mkMenu "Accounts" AccountsR
-          ]
-    let navbarRight = filter menuItemAccessCallback
-          [ MenuItem "Register" RegistrationR (isNothing muser)
-          , MenuItem "Login" (AuthR LoginR) (isNothing muser)
-          , mkMenu "Profile" ProfileR
-          , mkMenu "Logout" (AuthR LogoutR)
-          ]
+    let mkMenu n r = when (isJust $ can r "GET") $ tell [(n, r)]
+    let navbarLeft :: [(Text, Route App)] = execWriter $ do
+          tell [("Home", HomeR)]
+          mkMenu "Ticket" TicketR
+          mkMenu "Patch" PatchR
+          mkMenu "Module" ModuleR
+          mkMenu "Accounts" (UserAdminR UserAdminIndexR)
+    let navbarRight = execWriter $ do
+          when (isNothing muser) $ tell [("Register", RegistrationR)]
+          when (isNothing muser) $ tell [("Login", (AuthR LoginR))]
+          case muser of
+            Nothing -> return ()
+            Just (uid, u) -> do
+              tell [(userFirstName u <> " " <> userLastName u, UserAdminR (UserAdminEditR uid))]
+              tell [("Logout", AuthR LogoutR)]
 
     pc <- widgetToPageContent $ do
       addStylesheet $ StaticR fontawesome_font_awesome_min_css
@@ -153,7 +145,9 @@ instance YesodBreadcrumbs App where
   breadcrumb TicketR = return ("Ticket", Just HomeR)
   breadcrumb ModuleR = return ("Module", Just HomeR)
   breadcrumb PatchR = return ("Patch", Just HomeR)
-  breadcrumb AccountsR = return ("Accounts", Just HomeR)
+  breadcrumb (UserAdminR UserAdminIndexR) = return ("User management", Just HomeR)
+  breadcrumb (UserAdminR (UserAdminEditR _)) = return ("Edit", Just (UserAdminR UserAdminIndexR))
+  breadcrumb (UserAdminR UserAdminNewR) = return ("Add", Just (UserAdminR UserAdminIndexR))
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance RenderMessage App FormMessage where
@@ -198,7 +192,7 @@ instance YesodAuth App where
             else Nothing
 
   authPlugins _ = [authHashDB (Just . flip UniqueAuth True)]
-  authLayout = defaultAdminAuthLayout
+  authLayout = defaultLayout
   authHttpManager = getHttpManager
 
 instance YesodAuthPersist App
@@ -235,6 +229,8 @@ instance CmsRoles App where
   actionAllowedFor ModuleR _ = AllowRoles $ S.fromList [RoleProgrammer]
   actionAllowedFor PatchR _ = AllowAuthenticated
   actionAllowedFor TicketR _ = AllowAuthenticated
+  actionAllowedFor (UserAdminR UserAdminNewR) _ = AllowRoles $ S.fromList [RoleAdmin]
+  actionAllowedFor (UserAdminR _) _ = AllowAuthenticated
   actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
 
   -- cache user roles to reduce the amount of DB calls

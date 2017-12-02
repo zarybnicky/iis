@@ -10,7 +10,6 @@
 /patch                  PatchR             GET POST
 /module                 ModuleR            GET POST
 /ticket                 TicketR            GET POST
-/accounts               AccountsR          GET POST
 /users UserAdminR:
     /              UserAdminIndexR         GET
     /new           UserAdminNewR           GET POST
