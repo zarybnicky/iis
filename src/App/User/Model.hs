@@ -55,6 +55,7 @@ Programmer
     contractNum Int
     commitment Int
     hourlyWage Int
+    UniqueProgrammer user
 
 Knowledge
     user UserId
