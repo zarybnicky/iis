@@ -16,12 +16,13 @@ module App.Ticket.Model
   , Announces(..)
   , EntityField(..)
   , migrateTicket
+  , TicketStatus(..)
   ) where
 
 import ClassyPrelude.Yesod
 import App.Bug.Model (BugId)
 import App.User.Model (ProgrammerId, UserId)
-import App.Ticket.Types (TicketStatus)
+import App.Ticket.Types (TicketStatus(..))
 
 share [mkPersist sqlSettings, mkMigrate "migrateTicket"] [persistLowerCase|
 Ticket

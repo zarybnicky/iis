@@ -7,9 +7,9 @@
 /activate/#UserId/#Text UserAdminActivateR GET POST
 /profile                ProfileR           GET POST
 /registration           RegistrationR      GET POST
-/patch                  PatR               GET POST
-/module                 ModR               GET POST
-/ticket                 TickR              GET POST
+/patch                  PatchR             GET POST
+/module                 ModuleR            GET POST
+/ticket                 TicketR            GET POST
 /users UserAdminR:
     /              UserAdminIndexR         GET
     /new           UserAdminNewR           GET POST
@@ -21,10 +21,10 @@
     /user/#UserId  ActionLogAdminUserR     GET
 
 -- SimpleCRUD routes
-/modules/*CrudRoute-Unit-Module             ModuleR
-/patches/*CrudRoute-Unit-Patch              PatchR
-/languages/*CrudRoute-Unit-Language         LanguageR
-/tickets/*CrudRoute-ModuleId-Ticket         TicketR
+/modules/*CrudRoute-Unit-Module             ModuleCrudR
+/patches/*CrudRoute-Unit-Patch              PatchCrudR
+/languages/*CrudRoute-Unit-Language         LanguageCrudR
+/tickets/*CrudRoute-ModuleId-Ticket         TicketCrudR
 
 -- Hopefully made obsolete by parent-ful CRUD...
 -- /modules/#ModuleId/tickets

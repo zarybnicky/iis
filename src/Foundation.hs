@@ -14,7 +14,7 @@ module Foundation where
 
 import App.ActionLog.Model
 import App.Module.Model (Module, ModuleId)
-import App.Ticket.Model (Ticket, TicketId)
+import App.Ticket.Model (Ticket)
 import App.Patch.Model (Patch)
 import App.Language.Model (Language)
 import App.Roles.Model (UserRole(..), EntityField(..))
@@ -25,7 +25,7 @@ import Cms.ActionLog.Class (CmsActionLog(..))
 import Cms.Class (Cms(..))
 import Cms.Crud.Route (CrudRoute(..))
 import Cms.Mailer.Class
-import Cms.Roles.Class (CmsRoles(..), Allow(..))
+import Cms.Roles.Class (CmsRoles(..), Allow(..), getCan)
 import qualified Data.CaseInsensitive as CI
 import Data.Maybe (isJust)
 import Data.Ord (comparing)
@@ -89,59 +89,26 @@ instance Yesod App where
   defaultLayout widget = do
     master <- getYesod
     mmsg <- getMessage
+    can <- getCan
 
     muser <- maybeAuthPair
     mcurrentRoute <- getCurrentRoute
 
     (title, parents) <- breadcrumbs
 
-    let navbarLeftMenuItems =
-          [ MenuItem
-            { menuItemLabel = "Home"
-            , menuItemRoute = HomeR
-            , menuItemAccessCallback = True
-            }
-          , MenuItem
-            { menuItemLabel = "Ticket"
-            , menuItemRoute = TickR
-            , menuItemAccessCallback = isJust muser
-            }
-          , MenuItem
-            { menuItemLabel = "Patch"
-            , menuItemRoute = PatR
-            , menuItemAccessCallback = isJust muser
-            }
-          , MenuItem
-            { menuItemLabel = "Module"
-            , menuItemRoute = ModR
-            , menuItemAccessCallback = isJust muser
-            }
+    let mkMenu n r = MenuItem n r (isJust $ can r "GET")
+    let navbarLeft = filter menuItemAccessCallback
+          [ MenuItem "Home" HomeR True
+          , mkMenu "Ticket" TicketR
+          , mkMenu "Patch" PatchR
+          , mkMenu "Module" ModuleR
           ]
-    let navbarRightMenuItems =
-          [ MenuItem
-            { menuItemLabel = "Create Account"
-            , menuItemRoute = RegistrationR
-            , menuItemAccessCallback = isNothing muser
-            }
-          , MenuItem
-            { menuItemLabel = "Login"
-            , menuItemRoute = AuthR LoginR
-            , menuItemAccessCallback = isNothing muser
-            }
-          , MenuItem
-            { menuItemLabel = "Profile"
-            , menuItemRoute = ProfileR
-            , menuItemAccessCallback = isJust muser
-            }
-          , MenuItem
-            { menuItemLabel = "Logout"
-            , menuItemRoute = AuthR LogoutR
-            , menuItemAccessCallback = isJust muser
-            }
+    let navbarRight = filter menuItemAccessCallback
+          [ MenuItem "Register" RegistrationR (isNothing muser)
+          , MenuItem "Login" (AuthR LoginR) (isNothing muser)
+          , mkMenu "Profile" ProfileR
+          , mkMenu "Logout" (AuthR LogoutR)
           ]
-
-    let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
-    let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
 
     pc <- widgetToPageContent $ do
       addStylesheet $ StaticR fontawesome_font_awesome_min_css
@@ -182,9 +149,9 @@ instance YesodBreadcrumbs App where
   breadcrumb (AuthR _) = return ("Login", Just HomeR)
   breadcrumb ProfileR = return ("Profile", Just HomeR)
   breadcrumb RegistrationR = return ("Registration", Just HomeR)
-  breadcrumb TickR = return ("Ticket", Just HomeR)
-  breadcrumb ModR = return ("Module", Just HomeR)
-  breadcrumb PatR = return ("Patch", Just HomeR)
+  breadcrumb TicketR = return ("Ticket", Just HomeR)
+  breadcrumb ModuleR = return ("Module", Just HomeR)
+  breadcrumb PatchR = return ("Patch", Just HomeR)
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance RenderMessage App FormMessage where
@@ -259,11 +226,13 @@ instance CmsRoles App where
 
   actionAllowedFor RobotsR "GET" = AllowAll
   actionAllowedFor HomeR "GET" = AllowAll
+  actionAllowedFor (AuthR LogoutR) _ = AllowAuthenticated
   actionAllowedFor (AuthR _) _ = AllowAll
   actionAllowedFor RegistrationR _ = AllowAll
-  actionAllowedFor ModR _ = AllowRoles $ S.fromList [RoleProgrammer]
-  actionAllowedFor PatR _ = AllowAll
-  actionAllowedFor TickR _ = AllowAll
+  actionAllowedFor ProfileR _ = AllowAuthenticated
+  actionAllowedFor ModuleR _ = AllowRoles $ S.fromList [RoleProgrammer]
+  actionAllowedFor PatchR _ = AllowAuthenticated
+  actionAllowedFor TicketR _ = AllowAuthenticated
   actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
 
   -- cache user roles to reduce the amount of DB calls

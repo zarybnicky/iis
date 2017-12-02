@@ -13,3 +13,6 @@ extra-deps:
 - blaze-colonnade-1.1.0
 
 flags: {}
+
+nix:
+  enable: true

@@ -18,9 +18,9 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Form.Bootstrap3
 
-handleLanguageR :: CrudRoute () Language -> Handler Html
-handleLanguageR =
-  handleCrud . flip simplerCrudToHandler LanguageR $
+handleLanguageCrudR :: CrudRoute () Language -> Handler Html
+handleLanguageCrudR =
+  handleCrud . flip simplerCrudToHandler LanguageCrudR $
   SimplerCrud
   { crudSimplerMsg = languageMessages
   , crudSimplerDb = defaultCrudDb

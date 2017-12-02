@@ -93,6 +93,7 @@ Category: Category
 CreatedOn: Created on
 Order: Order
 Label: Label
+Title: Title
 Description: Description
 UploadedOn: Uploaded on
 Username: Username

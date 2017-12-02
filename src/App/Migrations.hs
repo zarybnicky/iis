@@ -18,7 +18,7 @@ import App.User.Model
 import App.Vulnerability.Model
 import ClassyPrelude.Yesod
 import qualified Data.Text.IO as T
-import Database.Persist.Sql (Migration, toSqlKey)
+import Database.Persist.Sql (Migration)
 import Settings (AppSettings(..), generateUUID)
 import Yesod.Auth.HashDB (setPassword)
 

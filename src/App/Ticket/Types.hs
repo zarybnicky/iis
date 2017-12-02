@@ -7,9 +7,9 @@ module App.Ticket.Types
 import ClassyPrelude.Yesod
 
 data TicketStatus
-  = New
-  | InProgress
-  | Complete
+  = StatusNew
+  | StatusInProgress
+  | StatusComplete
   deriving (Eq, Ord, Show, Read, Enum, Bounded, Typeable)
 
 derivePersistField "TicketStatus"

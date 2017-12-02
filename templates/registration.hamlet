@@ -1,2 +1,2 @@
-    ^{form}
-    <input type=submit>
+<form enctype=#{enctype}>
+  ^{form}

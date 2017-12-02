@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -23,6 +24,10 @@ module App.User.Handler
   , activateUserAdminEditR
   , getUserAdminActivateR
   , postUserAdminActivateR
+  , getProfileR
+  , postProfileR
+  , getRegistrationR
+  , postRegistrationR
   ) where
 
 import App.User.Model (UserId, User(..), EntityField(..), sendMailToUser)
@@ -39,10 +44,67 @@ import Foundation
 import Message (AppMessage(..))
 import Settings
 import Text.Hamlet (hamletFile)
-import Yesod.Auth (Creds(..), requireAuthId, setCreds, authLayout)
+import Yesod.Auth (Creds(..), Route(LoginR), requireAuthId, setCreds, authLayout)
 import Yesod.Auth.Email (saltPass)
+import Yesod.Auth.HashDB (setPassword)
 import Yesod.Form.Bootstrap3
 
+
+getProfileR :: Handler Html
+getProfileR = do
+  uid <- requireAuthId
+  _user <- runDB $ get404 uid
+  defaultLayout [whamlet|<h1>text|]
+
+postProfileR :: Handler Html
+postProfileR = getProfileR
+
+
+getRegistrationR :: Handler Html
+getRegistrationR = postRegistrationR
+
+postRegistrationR :: Handler Html
+postRegistrationR = do
+  now <- liftIO getCurrentTime
+  ident <- liftIO generateUUID
+  opw <- lookupPostParam "original-pw"
+  ((res, form), enctype) <- runFormPost (registrationForm opw now ident)
+  case res of
+    FormSuccess (u, pwd) -> do
+      u' <- setPassword (originalPassword pwd) u
+      _ <- runDB $ insert u'
+      redirect (AuthR LoginR)
+    _ -> return ()
+  defaultLayout $ $(widgetFile "registration")
+
+registrationForm :: Maybe Text -> UTCTime -> Text -> Form (User, ComparePassword)
+registrationForm original now ident =
+  renderBootstrap3 BootstrapBasicForm $
+  (,) <$>
+  (User <$>
+   pure ident <*>
+   pure Nothing <*>
+   areq textField (bfs MsgEmail) Nothing <*>
+   areq textField (bfs MsgFirstName) Nothing <*>
+   areq textField (bfs MsgLastName) Nothing <*>
+   areq intField (bfs MsgBirthNumber) Nothing <*>
+   aopt textField (bfs MsgAddress) Nothing <*>
+   aopt textField (bfs MsgCity) Nothing <*>
+   aopt intField (bfs MsgPostalCode) Nothing <*>
+   pure True <*>
+   pure Nothing <*>
+   pure now <*>
+   pure Nothing <*>
+   pure Nothing) <*>
+  (ComparePassword
+    <$> areq passwordField (withName "original-pw" $ bfs MsgPassword) Nothing
+    <*> areq comparePasswordField (bfs MsgConfirm) Nothing) <*
+  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+  where
+    comparePasswordField = check comparePasswords passwordField
+    comparePasswords pw
+      | pw == fromMaybe "" original = Right pw
+      | otherwise = Left MsgPasswordMismatch
 
 -- | Data type used by the change password form.
 data ComparePassword = ComparePassword
@@ -103,12 +165,11 @@ userChangePasswordForm original submit =
     <*  bootstrapSubmit (BootstrapSubmit (fromMaybe MsgSubmit submit) " btn-success " [])
     where
         validatePasswordField = check validatePassword passwordField
-        comparePasswordField = check comparePasswords passwordField
-
         validatePassword pw
             | T.length pw >= 8 = Right pw
             | otherwise = Left MsgPasswordTooShort
 
+        comparePasswordField = check comparePasswords passwordField
         comparePasswords pw
             | pw == fromMaybe "" original = Right pw
             | otherwise = Left MsgPasswordMismatch
