@@ -34,7 +34,7 @@ Delete: Delete
 Upload: Upload
 Rename: Rename
 Create: Create
-Confirm: Confirm
+Confirm: Confirm Password
 Submit: Submit
 Change: Change
 Remove: Remove

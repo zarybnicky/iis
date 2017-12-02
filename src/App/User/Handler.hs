@@ -28,6 +28,8 @@ module App.User.Handler
   , postProfileR
   , getRegistrationR
   , postRegistrationR
+  , getAccountsR
+  , postAccountsR
   ) where
 
 import App.User.Model (UserId, User(..), EntityField(..), sendMailToUser)
@@ -59,6 +61,41 @@ getProfileR = do
 postProfileR :: Handler Html
 postProfileR = getProfileR
 
+getAccountsR :: Handler Html
+getAccountsR = do
+  users <- runDB $ selectList [] []
+  defaultLayout $ do
+    setTitle "Accounts"   
+    [whamlet|
+      <h1>Accounts
+        <table>
+          <thead>
+            <tr>
+              <th>Identificaton
+              <th>Email
+              <th>Password
+              <th>First Name
+              <th>Last Name
+              <th>Birth Number
+              <th>Address
+              <th>City
+              <th>Postal Code
+          <tbody>
+            $forall Entity _ userData <- users
+              <tr>
+                <td>#{userIdent userData}
+                <td>#{userEmail userData}   
+                <td>#{userPassword userData}
+                <td>#{userFirstName userData} 
+                <td>#{userLastName userData} 
+                <td>#{userBirthNumber userData}    
+                <td>#{userAddress userData} 
+                <td>#{userCity userData} 
+                <td>#{userPostalCode userData} 
+    |]
+
+postAccountsR :: Handler Html
+postAccountsR = getAccountsR
 
 getRegistrationR :: Handler Html
 getRegistrationR = postRegistrationR

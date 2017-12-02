@@ -102,6 +102,7 @@ instance Yesod App where
           , mkMenu "Ticket" TicketR
           , mkMenu "Patch" PatchR
           , mkMenu "Module" ModuleR
+          , mkMenu "Accounts" AccountsR
           ]
     let navbarRight = filter menuItemAccessCallback
           [ MenuItem "Register" RegistrationR (isNothing muser)
@@ -152,6 +153,7 @@ instance YesodBreadcrumbs App where
   breadcrumb TicketR = return ("Ticket", Just HomeR)
   breadcrumb ModuleR = return ("Module", Just HomeR)
   breadcrumb PatchR = return ("Patch", Just HomeR)
+  breadcrumb AccountsR = return ("Accounts", Just HomeR)
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance RenderMessage App FormMessage where
