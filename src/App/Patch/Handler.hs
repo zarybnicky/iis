@@ -60,7 +60,8 @@ handlePatchCrudR =
 patchInsertForm :: UserId -> Day -> Form Patch
 patchInsertForm uid now =
   renderBootstrap3 BootstrapBasicForm $
-  Patch <$> fmap unTextarea (areq textareaField (bfs MsgDescription) Nothing) <*>
+  Patch <$> 
+  fmap unTextarea (areq textareaField (bfs MsgDescription) Nothing) <*>
   pure uid <*>
   pure now <*>
   pure Nothing <*>

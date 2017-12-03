@@ -22,9 +22,3 @@ getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
                     $ toContent $(embedFile "config/robots.txt")
 
-getModuleR :: Handler Html
-getModuleR = postModuleR
-
-postModuleR :: Handler Html
-postModuleR = defaultLayout [whamlet|<h1>text|]
-

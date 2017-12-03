@@ -49,7 +49,7 @@ import App.Common
 import App.Migrations (migrateAll, migrateCustom)
 
 import App.ActionLog.Handler
-import App.Module.Handler (handleModuleCrudR)
+import App.Module.Handler (handleModuleCrudR, postModuleR, getModuleR)
 import App.Ticket.Handler (handleTicketCrudR, postTicketR, getTicketR)
 import App.Patch.Handler (handlePatchCrudR, postPatchR, getPatchR)
 import App.Language.Handler (handleLanguageCrudR)

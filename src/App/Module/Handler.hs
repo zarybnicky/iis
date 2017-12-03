@@ -20,6 +20,19 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Form.Bootstrap3
 
+getModuleR :: Handler Html
+getModuleR = postModuleR
+
+postModuleR :: Handler Html
+postModuleR = do
+  ((res, form), enctype) <- runFormPost (moduleInsertForm)
+  case res of
+    FormSuccess t -> runDB (insert t) >> redirect ModuleR
+    _ -> defaultLayout [whamlet|
+           <form enctype=#{enctype}>
+             ^{form}
+         |]
+
 handleModuleCrudR :: CrudRoute () Module -> Handler Html
 handleModuleCrudR =
   handleCrud . flip simplerCrudToHandler ModuleCrudR $
@@ -37,6 +50,22 @@ handleModuleCrudR =
                 H.a (toHtml . moduleName $ entityVal e) H.! H.href (H.toValue r)
         ]
   }
+
+moduleInsertForm :: Form Module
+moduleInsertForm =
+  renderBootstrap3 BootstrapBasicForm $
+  Module <$> 
+  areq textField (bfs MsgName) Nothing <*>
+  fmap unTextarea (areq textareaField (bfs MsgDescription) Nothing) <*>
+  areq textField (bfs MsgRepository) Nothing <*>
+  areq (selectField programmers) (bfs MsgSupervisor) Nothing <*
+  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+  where
+    programmers =
+      optionsPersistKey
+        []
+        [Asc ProgrammerContractNum]
+        (T.pack . show . programmerContractNum)
 
 moduleForm :: Maybe Module -> UTCTime -> Form Module
 moduleForm m _ =
