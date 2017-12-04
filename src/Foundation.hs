@@ -94,7 +94,7 @@ instance Yesod App where
           mkMenu "New ticket" TicketR
           mkMenu "Accounts" (UserAdminR UserAdminIndexR)
     let navbarRight = execWriter $ do
-          mkMenu "Entities" EntitiesR
+          mkMenu "Mgmt" EntitiesR
           when (isNothing muser) $ tell [("Register", RegistrationR)]
           when (isNothing muser) $ tell [("Login", (AuthR LoginR))]
           case muser of

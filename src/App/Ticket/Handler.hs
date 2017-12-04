@@ -40,15 +40,14 @@ handleTicketCrudR =
   { crudSimplerMsg = ticketMessages
   , crudSimplerDb = defaultCrudDb
   , crudSimplerForm = ticketForm
-  , crudSimplerTable =
-      encodeClickableTable
-      (mconcat
-        [ headed "Name" $ \(e, mr) ->
-            case mr of
-              Nothing -> toHtml . ticketName $ entityVal e
-              Just r ->
-                H.a (toHtml . ticketName $ entityVal e) H.! H.href (H.toValue r)
-        ])
+  , crudSimplerTable = encodeClickableTable $ mconcat
+    [ headed "Name" $ \(e, mr) ->
+        case mr of
+          Nothing -> toHtml . ticketName $ entityVal e
+          Just r ->
+            H.a (toHtml . ticketName $ entityVal e) H.! H.href (H.toValue r)
+    , headed "Status" $ \(e, _) -> toHtml . show . ticketStatus $ entityVal e
+    ]
   }
 
 announcesName :: Announces -> Text
@@ -63,13 +62,12 @@ handleAnnouncesCrudR =
   , crudSimplerDb = defaultCrudDb
   , crudSimplerForm = announcesForm
   , crudSimplerTable =
-      encodeClickableTable
-        (mconcat
-           [ headed "Name" $ \(e, mr) ->
-               case mr of
-                 Nothing -> toHtml . announcesName $ entityVal e
-                 Just r -> H.a (toHtml . announcesName $ entityVal e) H.! H.href (H.toValue r)
-           ])
+      encodeClickableTable $ mconcat
+      [ headed "Name" $ \(e, mr) ->
+          case mr of
+            Nothing -> toHtml . announcesName $ entityVal e
+            Just r -> H.a (toHtml . announcesName $ entityVal e) H.! H.href (H.toValue r)
+      ]
   }
 
 ticketInsertForm :: UserId -> Form Ticket

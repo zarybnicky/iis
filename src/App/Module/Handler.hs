@@ -46,19 +46,6 @@ getModuleOverviewR mid = do
   let entities = ClassyPrelude.Yesod.groupBy (\(_, a) (_, b) -> entityKey a == entityKey b) xs
   defaultLayout $(widgetFile "module-overview")
 
-getModuleR :: Handler Html
-getModuleR = postModuleR
-
-postModuleR :: Handler Html
-postModuleR = do
-  ((res, form), enctype) <- runFormPost (moduleInsertForm)
-  case res of
-    FormSuccess t -> runDB (insert t) >> redirect ModuleR
-    _ -> defaultLayout [whamlet|
-           <form enctype=#{enctype}>
-             ^{form}
-         |]
-
 handleModuleCrudR :: CrudRoute () Module -> Handler Html
 handleModuleCrudR =
   handleCrud . flip simplerCrudToHandler ModuleCrudR $
@@ -74,28 +61,16 @@ handleModuleCrudR =
               Nothing -> toHtml . moduleName $ entityVal e
               Just r ->
                 H.a (toHtml . moduleName $ entityVal e) H.! H.href (H.toValue r)
+        , headed "Repository" $ \(e, _) -> toHtml . moduleRepository $ entityVal e
         ]
   }
-
-moduleInsertForm :: Form Module
-moduleInsertForm =
-  renderBootstrap3 BootstrapBasicForm $
-  Module <$>
-  areq textField (bfs MsgName) Nothing <*>
-  fmap unTextarea (areq textareaField (bfs MsgDescription) Nothing) <*>
-  areq textField (bfs MsgRepository) Nothing <*>
-  areq (selectField optionsProgrammers) (bfs MsgSupervisor) Nothing <*>
-  areq (multiSelectField optionsLanguages) (bfs MsgLanguage) Nothing <*
-  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
-  where
-    optionsLanguages = optionsPersistKey [] [Asc LanguageName] languageName
 
 moduleForm :: Maybe Module -> UTCTime -> Form Module
 moduleForm m _ =
   renderBootstrap3 (BootstrapHorizontalForm (ColMd 0) (ColMd 2) (ColMd 0) (ColMd 10)) $
   Module <$>
   areq textField (bfs MsgName) (moduleName <$> m) <*>
-  areq textField (bfs MsgDescription) (moduleDescription <$> m) <*>
+  fmap unTextarea (areq textareaField (bfs MsgDescription) (Textarea . moduleDescription <$> m)) <*>
   areq textField (bfs MsgRepository) (moduleRepository <$> m) <*>
   areq (selectField optionsProgrammers) (bfs MsgSupervisor) (moduleSupervisor <$> m) <*>
   areq (multiSelectField optionsLanguages) (bfs MsgLanguage) Nothing <*
