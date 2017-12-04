@@ -214,7 +214,7 @@ patchCommentForm m _ =
   areq (selectField optionsPatches) (bfs ("Patch(*)" :: Text)) (patchCommentParent <$> m) <*>
   areq intField (bfs ("Line(*)" :: Text)) (patchCommentLine <$> m) <*>
   areq (selectField optionsUsers) (bfs ("Author(*)" :: Text)) (patchCommentAuthor <$> m) <*>
-  fmap unTextarea (areq textareaField (bfs ("Description(*)" :: Text)) Nothing) <*
+  fmap unTextarea (areq textareaField (bfs ("Description(*)" :: Text)) (Textarea . patchCommentContent <$> m)) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
     optionsPatches = optionsPersistKey [] [] (T.take 20 . patchContent)
