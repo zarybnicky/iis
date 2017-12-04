@@ -29,9 +29,10 @@ postTicketR :: Handler Html
 postTicketR = do
   uid <- requireAuthId
   ((res, form), enctype) <- runFormPost (ticketInsertForm uid)
+  setMessage"Ticket created."
   case res of
     FormSuccess t -> runDB (insert t) >> redirect TicketR
-    _ -> defaultLayout [whamlet|<form enctype=#{enctype}>^{form}|]
+    _ -> defaultLayout [whamlet|<form model=post enctype=#{enctype}>^{form}|]
 
 handleTicketCrudR :: CrudRoute () Ticket -> Handler Html
 handleTicketCrudR =

@@ -68,8 +68,16 @@ postPatchDeployR pid False = do
   runDB $ update pid [PatchDeploymentDate =. Nothing]
   return $ TypedContent typePlain ""
 
-getPatchViewR :: PatchId -> Handler Html
-getPatchViewR _ = return mempty
+getPatchViewR:: PatchId -> Handler Html
+getPatchViewR = pid True do 
+  patch <- runDB $ selectList [] [Asc pid]
+    defaultLayout 
+      [whamlet|
+          <ul>
+              $forall Entity content patchData <- patch
+                  <li>
+                      <a href=@{PatchR content}>#{patchDataContent patchData}
+      |]
 
 handlePatchCrudR :: CrudRoute () Patch -> Handler Html
 handlePatchCrudR =
