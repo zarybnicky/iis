@@ -98,6 +98,7 @@ getViewPatchR pid = do
     Created: #{tshow $ patchCreationDate p}
     <pre>
       #{patchContent p}
+    
   |]
 
 getPatchGridR :: Handler Html
@@ -194,6 +195,16 @@ patchForm m now =
   aopt (selectField optionsProgrammers) (bfs MsgApproved) (patchApproved <$> m) <*>
   aopt dayField (bfs MsgApprovedDate) (patchApprovalDate <$> m) <*>
   aopt dayField (bfs MsgDeploymentDate) (patchDeploymentDate <$> m) <*
+  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+
+patchUserCommentForm :: Maybe PatchComment -> PatchId -> UserId -> Int -> Form PatchComment
+patchUserCommentForm m pid uid line =
+  renderBootstrap3 BootstrapBasicForm $
+  PatchComment <$>
+  pure (fromMaybe pid (patchCommentParent <$> m)) <*>
+  pure (fromMaybe line (patchCommentLine <$> m)) <*>
+  pure (fromMaybe uid (patchCommentAuthor <$> m)) <*>
+  fmap unTextarea (areq textareaField (bfs ("Description(*)" :: Text)) Nothing) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
 patchCommentForm :: Maybe PatchComment -> UTCTime -> Form PatchComment

@@ -16,8 +16,9 @@ module App.Bug.Model
   ) where
 
 import ClassyPrelude.Yesod
-import App.Patch.Model (PatchId)
 import App.Module.Model (ModuleId)
+import App.Patch.Model (PatchId)
+import App.User.Model (UserId)
 
 share [mkPersist sqlSettings, mkMigrate "migrateBug"] [persistLowerCase|
 Bug
@@ -27,4 +28,5 @@ Bug
     vulnerability Int Maybe
     module ModuleId
     isRepairedBy PatchId Maybe
+    author UserId
 |]

@@ -13,7 +13,7 @@
 module Foundation where
 
 import App.ActionLog.Model
-import App.Bug.Model (Bug)
+import App.Bug.Model
 import App.Module.Model
 import App.Ticket.Model
 import App.Patch.Model
@@ -155,14 +155,18 @@ instance YesodBreadcrumbs App where
   breadcrumb (BugCrudR _) = return ("Bug administration", Just EntitiesR)
   breadcrumb (AnnouncesCrudR _) = return ("Ticket/bug link administration", Just EntitiesR)
   breadcrumb PatchGridR = return ("Patch grid", Just HomeR)
-  breadcrumb MyPatchesR = return ("My patches", Just HomeR)
+  breadcrumb MyPatchesR = return ("Patches", Just HomeR)
   breadcrumb AddPatchR = return ("Add patch", Just MyPatchesR)
   breadcrumb (EditPatchR _) = return ("Edit patch", Just MyPatchesR)
-  breadcrumb (ViewPatchR _) = return ("View patch", Just HomeR)
-  breadcrumb MyTicketsR = return ("My tickets", Just HomeR)
+  breadcrumb (ViewPatchR _) = return ("View patch", Just MyPatchesR)
+  breadcrumb MyTicketsR = return ("Tickets", Just HomeR)
   breadcrumb AddTicketR = return ("Add ticket", Just MyTicketsR)
   breadcrumb (EditTicketR _) = return ("Edit ticket", Just MyTicketsR)
-  breadcrumb (ViewTicketR _) = return ("View ticket", Just HomeR)
+  breadcrumb (ViewTicketR _) = return ("View ticket", Just MyTicketsR)
+  breadcrumb MyBugsR = return ("Bugs", Just HomeR)
+  breadcrumb AddBugR = return ("Add bug", Just MyBugsR)
+  breadcrumb (EditBugR _) = return ("Edit bug", Just MyBugsR)
+  breadcrumb (ViewBugR _) = return ("View ticket", Just MyBugsR)
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance CmsRoles App where
@@ -199,6 +203,11 @@ instance CmsRoles App where
   actionAllowedFor PatchGridR _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchApproveR _ _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchDeployR _ _) _ = AllowRoles $ S.fromList [RoleAdmin]
+  actionAllowedFor MyBugsR _ = AllowAuthenticated
+  actionAllowedFor AddBugR _ = AllowAuthenticated
+  actionAllowedFor (EditBugR _) _ = AllowAuthenticated
+  actionAllowedFor (DeleteBugR _) _ = AllowAuthenticated
+  actionAllowedFor (ViewBugR _) _ = AllowAuthenticated
 
   -- cache user roles to reduce the amount of DB calls
   getUserRoles userId =

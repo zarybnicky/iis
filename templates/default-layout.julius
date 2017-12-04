@@ -1,0 +1,9 @@
+window.onkeypress = window.onscroll = window.onclick = window.onmousemove = window.onmousedown = resetTimer;
+var t;
+function resetTimer() {
+    clearTimeout(t);
+    t = setTimeout(function () {
+        window.location.href = '/auth/logout';
+    }, 18000000);
+}
+resetTimer();

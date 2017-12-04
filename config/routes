@@ -25,6 +25,11 @@
 /my-tickets/edit/#TicketId   EditTicketR        GET POST
 /my-tickets/delete/#TicketId DeleteTicketR      GET
 /my-tickets/view/#TicketId   ViewTicketR        GET
+/my-bugs                     MyBugsR            GET
+/my-bugs/add                 AddBugR            GET POST
+/my-bugs/edit/#BugId         EditBugR           GET POST
+/my-bugs/delete/#BugId       DeleteBugR         GET
+/my-bugs/view/#BugId         ViewBugR           GET
 /my-patches                  MyPatchesR         GET
 /my-patches/add              AddPatchR          GET POST
 /my-patches/edit/#PatchId    EditPatchR         GET POST

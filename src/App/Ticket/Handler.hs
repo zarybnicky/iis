@@ -35,7 +35,7 @@ getMyTicketsR = do
     return (t, u)
   defaultLayout $ [whamlet|
     <h1>My patches
-    <a href=@{AddPatchR}><b>+ New ticket
+    <a href=@{AddTicketR}><b>+ New ticket
     <table .table>
       <thead>
         <th>Name
@@ -81,7 +81,7 @@ postEditTicketR :: TicketId -> Handler Html
 postEditTicketR pid = do
   uid <- requireAuthId
   p <- runDB $ get404 pid
-  when (ticketAuthor p /= uid) (permissionDenied "You can edit only your ticketes")
+  when (ticketAuthor p /= uid) (permissionDenied "You can edit only your tickets")
   ((res, form), enctype) <- runFormPost (ticketUserForm (Just p) uid)
   case res of
     FormSuccess t -> do
@@ -94,7 +94,7 @@ getDeleteTicketR :: TicketId -> Handler Html
 getDeleteTicketR pid = do
   uid <- requireAuthId
   p <- runDB $ get404 pid
-  when (ticketAuthor p /= uid) (permissionDenied "You can edit only your ticketes")
+  when (ticketAuthor p /= uid) (permissionDenied "You can edit only your tickets")
   runDB $ delete pid
   redirect MyTicketsR
 
