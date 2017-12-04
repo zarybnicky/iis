@@ -28,14 +28,14 @@ getMyTicketsR :: Handler Html
 getMyTicketsR = do
   uid <- requireAuthId
   ps :: [(Entity Ticket, Maybe (Entity User))] <-
-    runDB $ E.select $ E.from $ \(t `E.LeftOuterJoin` p `E.InnerJoin` u) -> do
+    runDB $ E.select $ E.from $ \(t `E.LeftOuterJoin` p `E.LeftOuterJoin` u) -> do
     E.on (t E.^. TicketAssignedTo E.==. p E.?. ProgrammerId)
     E.on (p E.?. ProgrammerUser E.==. u E.?. UserId)
     E.orderBy [E.desc $ t E.^. TicketId]
     E.where_ $ t E.^. TicketAuthor E.==. E.val uid
     return (t, u)
   defaultLayout $ [whamlet|
-    <h1>My patches
+    <h1>My tickets
     <a href=@{AddTicketR}><b>+ New ticket
     <table .table>
       <thead>
