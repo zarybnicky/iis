@@ -69,11 +69,11 @@ moduleForm :: Maybe Module -> UTCTime -> Form Module
 moduleForm m _ =
   renderBootstrap3 (BootstrapHorizontalForm (ColMd 0) (ColMd 2) (ColMd 0) (ColMd 10)) $
   Module <$>
-  areq textField (bfs MsgName) (moduleName <$> m) <*>
-  fmap unTextarea (areq textareaField (bfs MsgDescription) (Textarea . moduleDescription <$> m)) <*>
-  areq textField (bfs MsgRepository) (moduleRepository <$> m) <*>
-  areq (selectField optionsProgrammers) (bfs MsgSupervisor) (moduleSupervisor <$> m) <*>
-  areq (multiSelectField optionsLanguages) (bfs MsgLanguage) Nothing <*
+  areq textField (bfs ("Name(*)" :: Text)) (moduleName <$> m) <*>
+  fmap unTextarea (areq textareaField (bfs ("Description(*)" :: Text)) (Textarea . moduleDescription <$> m)) <*>
+  areq textField (bfs ("Repository(*)" :: Text)) (moduleRepository <$> m) <*>
+  areq (selectField optionsProgrammers) (bfs ("Supervisor(*)" :: Text)) (moduleSupervisor <$> m) <*>
+  areq (multiSelectField optionsLanguages) (bfs ("Language(*)" :: Text)) Nothing <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
     optionsLanguages = optionsPersistKey [] [Asc LanguageName] languageName

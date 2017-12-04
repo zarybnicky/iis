@@ -176,7 +176,7 @@ patchUserForm :: Maybe Patch -> UserId -> Day -> Form Patch
 patchUserForm m uid now =
   renderBootstrap3 BootstrapBasicForm $
   Patch <$>
-  fmap unTextarea (areq textareaField (bfs MsgContent) (Textarea . patchContent <$> m)) <*>
+  fmap unTextarea (areq textareaField (bfs ("Content(*)" :: Text)) (Textarea . patchContent <$> m)) <*>
   pure (fromMaybe uid (patchAuthor <$> m)) <*>
   pure (fromMaybe now (patchCreationDate <$> m)) <*>
   pure (fromMaybe Nothing (patchApproved <$> m)) <*>
@@ -188,8 +188,8 @@ patchForm :: Maybe Patch -> UTCTime -> Form Patch
 patchForm m now =
   renderBootstrap3 BootstrapBasicForm $
   Patch <$>
-  fmap unTextarea (areq textareaField (bfs MsgContent) (Textarea . patchContent <$> m)) <*>
-  areq (selectField optionsUsers) (bfs MsgAuthor) (patchAuthor <$> m) <*>
+  fmap unTextarea (areq textareaField (bfs ("Content(*)" :: Text)) (Textarea . patchContent <$> m)) <*>
+  areq (selectField optionsUsers) (bfs ("Author(*)" :: Text)) (patchAuthor <$> m) <*>
   pure (fromMaybe (utctDay now) (patchCreationDate <$> m)) <*>
   aopt (selectField optionsProgrammers) (bfs MsgApproved) (patchApproved <$> m) <*>
   aopt dayField (bfs MsgApprovedDate) (patchApprovalDate <$> m) <*>
@@ -200,10 +200,10 @@ patchCommentForm :: Maybe PatchComment -> UTCTime -> Form PatchComment
 patchCommentForm m _ =
   renderBootstrap3 BootstrapBasicForm $
   PatchComment <$>
-  areq (selectField optionsPatches) (bfs MsgPatch) (patchCommentParent <$> m) <*>
-  areq intField (bfs MsgLine) (patchCommentLine <$> m) <*>
-  areq (selectField optionsUsers) (bfs MsgAuthor) (patchCommentAuthor <$> m) <*>
-  fmap unTextarea (areq textareaField (bfs MsgDescription) Nothing) <*
+  areq (selectField optionsPatches) (bfs ("Patch(*)" :: Text)) (patchCommentParent <$> m) <*>
+  areq intField (bfs ("Line(*)" :: Text)) (patchCommentLine <$> m) <*>
+  areq (selectField optionsUsers) (bfs ("Author(*)" :: Text)) (patchCommentAuthor <$> m) <*>
+  fmap unTextarea (areq textareaField (bfs ("Description(*)" :: Text)) Nothing) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
     optionsPatches = optionsPersistKey [] [] (T.take 20 . patchContent)

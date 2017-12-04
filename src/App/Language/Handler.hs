@@ -40,7 +40,7 @@ languageForm :: Maybe Language -> UTCTime -> Form Language
 languageForm m _ =
   renderBootstrap3 BootstrapBasicForm $
   Language <$>
-  areq textField (bfs MsgName) (languageName <$> m) <*
+  areq textField (bfs ("Name(*)" :: Text)) (languageName <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
 languageMessages :: CrudMessages App Language

@@ -35,7 +35,7 @@ getMyTicketsR = do
     return (t, u)
   defaultLayout $ [whamlet|
     <h1>My patches
-    <a href=@{AddPatchR}><b>+ New patch
+    <a href=@{AddPatchR}><b>+ New ticket
     <table .table>
       <thead>
         <th>Name
@@ -46,7 +46,9 @@ getMyTicketsR = do
       <tbody>
         $forall (Entity k p, m) <- ps
           <tr>
-            <td>#{ticketName p}
+            <td>
+              <a href=@{ViewTicketR k}>
+                #{ticketName p}
             <td>#{tshow $ ticketStatus p}
             $maybe Entity _ u <- m
               <td>#{userFullName u}
@@ -146,8 +148,8 @@ ticketUserForm :: Maybe Ticket -> UserId -> Form Ticket
 ticketUserForm m uid =
   renderBootstrap3 BootstrapBasicForm $
   Ticket <$>
-  areq textField (bfs MsgTitle) (ticketName <$> m) <*>
-  fmap unTextarea (areq textareaField (bfs MsgDescription) (Textarea . ticketDescription <$> m)) <*>
+  areq textField (bfs ("Title(*)" :: Text)) (ticketName <$> m) <*>
+  fmap unTextarea (areq textareaField (bfs ("Description(*)" :: Text)) (Textarea . ticketDescription <$> m)) <*>
   pure (fromMaybe StatusNew (ticketStatus <$> m)) <*>
   pure (fromMaybe uid (ticketAuthor <$> m)) <*>
   pure (fromMaybe Nothing (ticketAssignedTo <$> m)) <*
@@ -156,10 +158,10 @@ ticketUserForm m uid =
 ticketForm :: Maybe Ticket -> UTCTime -> Form Ticket
 ticketForm m _ =
   renderBootstrap3 BootstrapBasicForm $
-  Ticket <$> areq textField (bfs MsgName) (ticketName <$> m) <*>
-  areq textField (bfs MsgDescription) (ticketDescription <$> m) <*>
-  areq (selectField optionsEnum) (bfs MsgStatus) (ticketStatus <$> m) <*>
-  areq (selectField optionsUsers) (bfs MsgAuthor) (ticketAuthor <$> m) <*>
+  Ticket <$> areq textField (bfs ("Name(*)" :: Text)) (ticketName <$> m) <*>
+  areq textField (bfs ("Description(*)" :: Text)) (ticketDescription <$> m) <*>
+  areq (selectField optionsEnum) (bfs ("Status(*)" :: Text)) (ticketStatus <$> m) <*>
+  areq (selectField optionsUsers) (bfs ("Author(*)" :: Text)) (ticketAuthor <$> m) <*>
   aopt (selectField optionsProgrammers) (bfs MsgAssignedTo) (ticketAssignedTo <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
@@ -167,8 +169,8 @@ announcesForm :: Maybe Announces -> UTCTime -> Form Announces
 announcesForm m _ =
   renderBootstrap3 BootstrapBasicForm $
   Announces <$>
-  areq (selectField optionsBugs) (bfs MsgBug) (announcesBug <$> m) <*>
-  areq (selectField optionsTickets) (bfs MsgTicket) (announcesTicket <$> m) <*
+  areq (selectField optionsBugs) (bfs ("Bug(*)" :: Text)) (announcesBug <$> m) <*>
+  areq (selectField optionsTickets) (bfs ("Ticket(*)" :: Text)) (announcesTicket <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
     optionsBugs = optionsPersistKey [] [] bugName

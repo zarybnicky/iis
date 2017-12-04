@@ -75,11 +75,11 @@ handleBugCrudR =
 bugForm :: Maybe Bug -> UTCTime -> Form Bug
 bugForm m _ =
   renderBootstrap3 BootstrapBasicForm $
-  Bug <$> areq textField (bfs MsgName) (bugName <$> m) <*>
-  areq textField (bfs MsgDescription) (bugDescription <$> m) <*>
-  areq intField (bfs MsgSeverity) (bugSeverity <$> m) <*>
+  Bug <$> areq textField (bfs ("Name(*)" :: Text)) (bugName <$> m) <*>
+  areq textField (bfs ("Description(*)" :: Text)) (bugDescription <$> m) <*>
+  areq intField (bfs ("Severity(*)" :: Text)) (bugSeverity <$> m) <*>
   aopt intField (bfs MsgVulnerability) (bugVulnerability <$> m) <*>
-  areq (selectField optionsModules) (bfs MsgModule) (bugModule <$> m) <*>
+  areq (selectField optionsModules) (bfs ("Module(*)" :: Text)) (bugModule <$> m) <*>
   aopt (selectField optionsPatches) (bfs ("Is repaired by patch" :: Text)) (bugIsRepairedBy <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where

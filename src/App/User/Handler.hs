@@ -59,10 +59,10 @@ registrationForm original now ident =
   (User <$>
    pure ident <*>
    pure Nothing <*>
-   areq textField (bfs MsgEmail) Nothing <*>
-   areq textField (bfs MsgFirstName) Nothing <*>
-   areq textField (bfs MsgLastName) Nothing <*>
-   areq intField (bfs MsgBirthNumber) Nothing <*>
+   areq textField (bfs ("Email(*)" :: Text)) Nothing <*>
+   areq textField (bfs ("First name(*)" :: Text)) Nothing <*>
+   areq textField (bfs ("Last name(*)" :: Text)) Nothing <*>
+   areq intField (bfs ("Birth number(*)" :: Text)) Nothing <*>
    aopt textField (bfs MsgAddress) Nothing <*>
    aopt textField (bfs MsgCity) Nothing <*>
    aopt intField (bfs MsgPostalCode) Nothing <*>
@@ -73,8 +73,8 @@ registrationForm original now ident =
    pure Nothing <*>
    areq (multiSelectField optionsLanguages) (bfs MsgLanguage) Nothing) <*>
   (ComparePassword
-    <$> areq passwordField (withName "original-pw" $ bfs MsgPassword) Nothing
-    <*> areq comparePasswordField (bfs MsgConfirm) Nothing) <*
+    <$> areq passwordField (withName "original-pw" $ bfs ("Password(*)" :: Text)) Nothing
+    <*> areq comparePasswordField (bfs ("Confirm password(*)" :: Text)) Nothing) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
     optionsLanguages = optionsPersistKey [] [Asc LanguageName] languageName
@@ -101,10 +101,10 @@ accountSettingsForm user mprog roles mlabel extra = do
   maRoles <- lift mayAssignRoles
   let optionsLanguages = optionsPersistKey [] [Asc LanguageName] languageName
   -- User fields
-  (fnameR, fnameV) <- mreq textField (bfs MsgFirstName) (Just $ userFirstName user)
-  (lnameR, lnameV) <- mreq textField (bfs MsgLastName) (Just $ userLastName user)
-  (emailR, emailV) <- mreq emailField (bfs MsgEmailAddress) (Just $ userEmail user)
-  (birthR, birthV) <- mreq intField (bfs MsgBirthNumber) (Just $ userBirthNumber user)
+  (fnameR, fnameV) <- mreq textField (bfs ("First name(*)" :: Text)) (Just $ userFirstName user)
+  (lnameR, lnameV) <- mreq textField (bfs ("Last name(*)" :: Text)) (Just $ userLastName user)
+  (emailR, emailV) <- mreq emailField (bfs ("Email(*)" :: Text)) (Just $ userEmail user)
+  (birthR, birthV) <- mreq intField (bfs ("Birth number(*)" :: Text)) (Just $ userBirthNumber user)
   (addrR, addrV) <- mopt textField (bfs MsgAddress) (Just $ userAddress user)
   (cityR, cityV) <- mopt textField (bfs MsgCity) (Just $ userCity user)
   (postR, postV) <- mopt intField (bfs MsgPostalCode) (Just $ userPostalCode user)
@@ -119,9 +119,9 @@ accountSettingsForm user mprog roles mlabel extra = do
   (mProgR, mProgV) <- if maRoles
     then do
     (isProgR, isProgV) <- mreq checkBoxField "Is a programmer?" (Just $ isJust mprog)
-    (contractR, contractV) <- mreq intField (bfs MsgContractNum) (programmerContractNum <$> mprog)
-    (commitR, commitV) <- mreq intField (bfs MsgCommitment) (programmerCommitment <$> mprog)
-    (wageR, wageV) <- mreq intField (bfs MsgHourlyWage) (programmerHourlyWage <$> mprog)
+    (contractR, contractV) <- mreq intField (bfs ("Contract no.(*)" :: Text)) (programmerContractNum <$> mprog)
+    (commitR, commitV) <- mreq intField (bfs ("Commitment(*)" :: Text)) (programmerCommitment <$> mprog)
+    (wageR, wageV) <- mreq intField (bfs ("Hourly wage(*)" :: Text)) (programmerHourlyWage <$> mprog)
     let progR = handleProg <$> isProgR <*> contractR <*> commitR <*> wageR
     return (progR, Just (isProgV, contractV, commitV, wageV))
     else return (FormSuccess $ const <$> mprog, Nothing)
@@ -144,8 +144,8 @@ accountSettingsForm user mprog roles mlabel extra = do
 userChangePasswordForm :: Maybe Text -> Maybe AppMessage -> Form ComparePassword
 userChangePasswordForm original submit =
     renderBootstrap3 BootstrapBasicForm $ ComparePassword
-    <$> areq validatePasswordField (withName "original-pw" $ bfs MsgPassword) Nothing
-    <*> areq comparePasswordField  (bfs MsgConfirm) Nothing
+    <$> areq validatePasswordField (withName "original-pw" $ bfs ("Password(*)" :: Text)) Nothing
+    <*> areq comparePasswordField  (bfs ("Confirm password(*)" :: Text)) Nothing
     <*  bootstrapSubmit (BootstrapSubmit (fromMaybe MsgSubmit submit) " btn-success " [])
     where
         validatePasswordField = check validatePassword passwordField
