@@ -179,7 +179,7 @@ AccountSettings: Account settings
 MenuUsers: Users
 UserIndex: User overview
 NewUser: New user
-EditUser t@Text: t
+EditUser t@Text: #{t}
 DeletedUser t@Text: User "#{t}" deleted
 NoUsersFound: No users found.
 ChangeAccountSettings: Modify account settings
