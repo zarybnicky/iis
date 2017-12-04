@@ -183,15 +183,9 @@ generateUserWithEmail e = do
     , userLanguages = []
     }
 
--- | Helper to create an empty user.
 emptyUser :: IO User
 emptyUser = generateUserWithEmail ""
 
--- | Validate an activation token.
-validateUserToken :: Text -> User -> Maybe Bool
-validateUserToken token = fmap (== token) . userToken
-
--- | Send an email to the user with a link containing the activation token.
 sendAccountActivationToken :: Entity User -> Handler ()
 sendAccountActivationToken (Entity userId user) =
   case userToken user of
@@ -202,7 +196,6 @@ sendAccountActivationToken (Entity userId user) =
         $(hamletFile "templates/mail/activation-text.hamlet")
     Nothing -> error "No activation token found"
 
--- | Send an email to the user with a link containing the reset token.
 sendAccountResetToken :: Entity User -> Handler ()
 sendAccountResetToken (Entity userId user) =
   case userToken user of
@@ -213,7 +206,6 @@ sendAccountResetToken (Entity userId user) =
         $(hamletFile "templates/mail/reset-text.hamlet")
     Nothing -> error "No reset token found"
 
--- | User overview.
 getUserAdminIndexR :: Handler Html
 getUserAdminIndexR = do
   timeNow <- liftIO getCurrentTime
@@ -245,7 +237,6 @@ getUserAdminNewR = do
     setTitleI MsgNewUser
     $(widgetFile "user/new")
 
--- | Create a new user, handle a posted form.
 postUserAdminNewR :: Handler Html
 postUserAdminNewR = do
   eu <- liftIO emptyUser
@@ -269,7 +260,6 @@ postUserAdminNewR = do
         setTitleI MsgNewUser
         $(widgetFile "user/new")
 
--- | Show the forms to edit an existing user.
 getUserAdminEditR :: UserId -> Handler Html
 getUserAdminEditR userId = do
   timeNow <- liftIO getCurrentTime
@@ -289,7 +279,6 @@ getUserAdminEditR userId = do
     setTitleI . MsgEditUser $ userEmail user
     $(widgetFile "user/edit")
 
--- | Change a user's main properties.
 patchUserAdminEditR :: UserId -> Handler Html
 patchUserAdminEditR userId = do
   (user, timeNow, hrtLocale, urs) <- updateHelper userId
@@ -317,8 +306,6 @@ patchUserAdminEditR userId = do
         setTitleI . MsgEditUser $ userEmail user
         $(widgetFile "user/edit")
 
--- | Helper function to get data required for some DB updates operations in
--- handlers.  Removes code duplication.
 updateHelper :: Key User
              -> Handler (User, UTCTime, HumanTimeLocale, S.Set (Roles App))
 updateHelper userId = do
@@ -353,7 +340,6 @@ chpassUserAdminEditR userId = do
         setTitleI . MsgEditUser $ userEmail user
         $(widgetFile "user/edit")
 
--- | Request a user's password to be reset.
 rqpassUserAdminEditR :: UserId -> Handler Html
 rqpassUserAdminEditR userId = do
   user' <- runDB $ get404 userId
@@ -417,7 +403,7 @@ deleteUserAdminEditR userId = do
 getUserAdminActivateR :: UserId -> Text -> Handler Html
 getUserAdminActivateR userId token = do
   user <- runDB $ get404 userId
-  case validateUserToken token user of
+  case (token ==) <$> userToken user of
     Just True -> do
       (pwFormWidget, pwEnctype) <-
         generateFormPost $ userChangePasswordForm Nothing (Just MsgSave)
@@ -437,7 +423,7 @@ getUserAdminActivateR userId token = do
 postUserAdminActivateR :: UserId -> Text -> Handler Html
 postUserAdminActivateR userId token = do
   user <- runDB $ get404 userId
-  case validateUserToken token user of
+  case (token ==) <$> userToken user of
     Just True -> do
       opw <- lookupPostParam "original-pw"
       ((formResult, pwFormWidget), pwEnctype) <-

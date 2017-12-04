@@ -92,7 +92,7 @@ instance Yesod App where
     let navbarLeft :: [(Text, Route App)] = execWriter $ do
           tell [("Home", HomeR)]
           mkMenu "New ticket" TicketR
-          mkMenu "Accounts" (UserAdminR UserAdminIndexR)
+          mkMenu "Patch grid" PatchGridR
     let navbarRight = execWriter $ do
           mkMenu "Mgmt" EntitiesR
           when (isNothing muser) $ tell [("Register", RegistrationR)]
@@ -154,20 +154,26 @@ instance YesodBreadcrumbs App where
   breadcrumb (TicketCrudR _) = return ("Ticket administration", Just EntitiesR)
   breadcrumb (BugCrudR _) = return ("Bug administration", Just EntitiesR)
   breadcrumb (AnnouncesCrudR _) = return ("Ticket/bug link administration", Just EntitiesR)
+  breadcrumb PatchR = return ("New patch", Just HomeR)
+  breadcrumb (PatchViewR _) = return ("Patch view", Just HomeR)
+  breadcrumb PatchGridR = return ("Patch grid", Just HomeR)
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance CmsRoles App where
   type Roles App = RoleName
 
-  actionAllowedFor RobotsR "GET" = AllowAll
-  actionAllowedFor HomeR "GET" = AllowAll
+  actionAllowedFor RobotsR _ = AllowAll
+  actionAllowedFor (StaticR _) _ = AllowAll
+  actionAllowedFor HomeR _ = AllowAll
   actionAllowedFor (AuthR _) _ = AllowAll
   actionAllowedFor RegistrationR _ = AllowAll
   actionAllowedFor TicketR _ = AllowAuthenticated
   actionAllowedFor EntitiesR _ = AllowRoles $ S.fromList [RoleProgrammer, RoleAdmin]
   actionAllowedFor (ModuleOverviewR _) _ = AllowAuthenticated
+  actionAllowedFor (UserAdminActivateR _ _) _ = AllowAuthenticated
   actionAllowedFor (UserAdminR UserAdminNewR) _ = AllowRoles $ S.fromList [RoleAdmin]
-  actionAllowedFor (UserAdminR _) _ = AllowAuthenticated
+  actionAllowedFor (UserAdminR UserAdminIndexR) _ = AllowRoles $ S.fromList [RoleAdmin]
+  actionAllowedFor (UserAdminR (UserAdminEditR _)) _ = AllowAuthenticated
   actionAllowedFor (LanguageCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin]
   actionAllowedFor (ModuleCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin]
   actionAllowedFor (TicketCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
@@ -175,7 +181,11 @@ instance CmsRoles App where
   actionAllowedFor (AnnouncesCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchCommentCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
-  actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
+  actionAllowedFor PatchR _ = AllowAuthenticated
+  actionAllowedFor (PatchViewR _) _ = AllowAuthenticated
+  actionAllowedFor PatchGridR _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
+  actionAllowedFor (PatchApproveR _ _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
+  actionAllowedFor (PatchDeployR _ _) _ = AllowRoles $ S.fromList [RoleAdmin]
 
   -- cache user roles to reduce the amount of DB calls
   getUserRoles userId =

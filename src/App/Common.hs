@@ -27,6 +27,9 @@ getEntitiesR :: Handler Html
 getEntitiesR = do
   can <- getCan
   defaultLayout $ [whamlet|
+$maybe r <- can (UserAdminR UserAdminIndexR) "GET"
+  <p>
+    <a href=@{r}>User accounts
 $maybe r <- can (LanguageCrudR (IndexR unit)) "GET"
   <p>
     <a href=@{r}>Languages

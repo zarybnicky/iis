@@ -1,0 +1,26 @@
+$("input[name='approve']").change(function () {
+    var $this = $(this);
+    var loader = $('<img src=@{StaticR rolling_gif} />');
+    loader.insertBefore($this);
+    $this.hide();
+    $.ajax({
+        type: "POST",
+        url: "/patch/approve/" + $this.val() + '/' + ($this.prop('checked') ? "True" : "False"),
+    }).then(function () {
+        loader.remove();
+        $this.show();
+    });
+});
+$("input[name='deploy']").change(function () {
+    var $this = $(this);
+    var loader = $('<img src=@{StaticR rolling_gif} />');
+    loader.insertBefore($this);
+    $this.hide();
+    $.ajax({
+        type: "POST",
+        url: "/patch/deploy/" + $this.val() + '/' + ($this.prop('checked') ? "True" : "False"),
+    }).then(function () {
+        loader.remove();
+        $this.show();
+    });
+});

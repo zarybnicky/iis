@@ -22,4 +22,8 @@
 /entities                    EntitiesR          GET
 /ticket                      TicketR            GET POST
 /patch                       PatchR             GET POST
+/patch/view/#PatchId         PatchViewR         GET
+/patch/grid                  PatchGridR         GET
+/patch/approve/#PatchId/#Bool PatchApproveR     POST
+/patch/deploy/#PatchId/#Bool  PatchDeployR      POST
 !/modules/#ModuleId/overview ModuleOverviewR    GET

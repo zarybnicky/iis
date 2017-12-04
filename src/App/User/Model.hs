@@ -61,6 +61,9 @@ Programmer
     UniqueProgrammer user
 |]
 
+userFullName :: User -> Text
+userFullName u = userFirstName u <> " " <> userLastName u
+
 _userIdent :: Functor f => (Text -> f Text) -> User -> f User
 _userIdent f u = (\a' -> u {userIdent = a'}) <$> f (userIdent u)
 _userPassword :: Functor f => (Maybe Text -> f (Maybe Text)) -> User -> f User

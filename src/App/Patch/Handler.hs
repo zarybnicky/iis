@@ -7,16 +7,20 @@
 
 module App.Patch.Handler where
 
-import App.User.Model (UserId)
+import App.User.Model
 import App.Patch.Model
 import App.Utils (optionsUsers, optionsProgrammers)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
 import Cms.Crud
 import Cms.Crud.Route
+import Cms.Roles.Class (getCan)
 import Colonnade (headed)
 import qualified Data.Text as T
+import qualified Database.Esqueleto as E
 import Foundation
 import Message (AppMessage(..))
+import Settings (widgetFile)
+import Settings.StaticFiles
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Auth (requireAuthId)
@@ -32,10 +36,40 @@ postPatchR = do
   ((res, form), enctype) <- runFormPost (patchInsertForm uid now)
   case res of
     FormSuccess t -> runDB (insert t) >> redirect PatchR
-    _ -> defaultLayout [whamlet|
-           <form enctype=#{enctype}>
-             ^{form}
-         |]
+    _ -> defaultLayout [whamlet|<form enctype=#{enctype}>^{form}|]
+
+getPatchGridR :: Handler Html
+getPatchGridR = do
+  can <- getCan
+  xs :: [(Entity Patch, Entity User)] <-
+    runDB . E.select . E.from $ \(p `E.InnerJoin` u) -> do
+      E.on (p E.^. PatchAuthor E.==. u E.^. UserId)
+      E.orderBy [E.desc $ p E.^. PatchId]
+      return (p, u)
+  defaultLayout $ $(widgetFile "patch-grid")
+
+postPatchApproveR :: PatchId -> Bool -> Handler TypedContent
+postPatchApproveR pid True = do
+  uid <- requireAuthId
+  prog <- runDB $ getBy404 $ UniqueProgrammer uid
+  now <- liftIO $ getCurrentTime
+  runDB $ update pid [PatchApproved =. Just (entityKey prog), PatchApprovalDate =. Just (utctDay now)]
+  return $ TypedContent typePlain ""
+postPatchApproveR pid False = do
+  runDB $ update pid [PatchApproved =. Nothing, PatchApprovalDate =. Nothing]
+  return $ TypedContent typePlain ""
+
+postPatchDeployR :: PatchId -> Bool -> Handler TypedContent
+postPatchDeployR pid True = do
+  now <- liftIO $ getCurrentTime
+  runDB $ update pid [PatchDeploymentDate =. Just (utctDay now)]
+  return $ TypedContent typePlain ""
+postPatchDeployR pid False = do
+  runDB $ update pid [PatchDeploymentDate =. Nothing]
+  return $ TypedContent typePlain ""
+
+getPatchViewR :: PatchId -> Handler Html
+getPatchViewR _ = return mempty
 
 handlePatchCrudR :: CrudRoute () Patch -> Handler Html
 handlePatchCrudR =
@@ -92,12 +126,12 @@ patchInsertForm uid now =
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
 patchForm :: Maybe Patch -> UTCTime -> Form Patch
-patchForm m _ =
+patchForm m now =
   renderBootstrap3 BootstrapBasicForm $
   Patch <$>
   fmap unTextarea (areq textareaField (bfs MsgContent) (Textarea . patchContent <$> m)) <*>
   areq (selectField optionsUsers) (bfs MsgAuthor) (patchAuthor <$> m) <*>
-  areq dayField (bfs MsgCreationDate) (patchCreationDate <$> m) <*>
+  pure (fromMaybe (utctDay now) (patchCreationDate <$> m)) <*>
   aopt (selectField optionsProgrammers) (bfs MsgApproved) (patchApproved <$> m) <*>
   aopt dayField (bfs MsgApprovedDate) (patchApprovalDate <$> m) <*>
   aopt dayField (bfs MsgDeploymentDate) (patchDeploymentDate <$> m) <*

@@ -1,0 +1,31 @@
+<h1>Patch overview
+
+<table .table>
+  <thead>
+    <th>Snippet
+    <th>Author
+    <th>Created
+    <th>Approved
+    <th>Deployed
+  <tbody>
+    $forall (patch, user) <- xs
+      <tr>
+        <td>
+          <a href=@{PatchViewR (entityKey patch)}>
+            #{patchName $ entityVal patch}
+        <td>#{userFullName $ entityVal user}
+        <td>#{tshow $ patchCreationDate $ entityVal patch}
+        <td>
+          <input type="checkbox" name="approve"
+            value=#{toPathPiece $ entityKey patch}
+            :isJust $ patchApprovalDate $ entityVal patch:checked />
+        <td>
+          $maybe _ <- can (PatchDeployR (entityKey patch) True) "POST"
+            <input type="checkbox" name="deploy"
+              value=#{toPathPiece $ entityKey patch}
+              :isJust $ patchDeploymentDate $ entityVal patch:checked />
+          $nothing
+            $maybe _ <- patchDeploymentDate $ entityVal patch
+              &#10003;
+            $nothing
+              &#10007;
