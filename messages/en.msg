@@ -115,6 +115,10 @@ AssignedTo: Assigned to
 CreationDate: CreationDate
 Approved: Approved
 ApprovedDate: ApprovedDate
+IsProgrammer: Is programmer
+ContractNum: Contract no.
+Commitment: Commitment
+HourlyWage: Hourly wage
 
 Dashboard: Dashboard
 Administration: Administrace

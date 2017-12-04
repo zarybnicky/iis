@@ -1,20 +1,29 @@
 #{extra}
-$forall view <- [fnameView, lnameView, emailView, birthView, addrView, cityView, postView]
+$forall view <- [fnameV, lnameV, emailV, birthV, addrV, cityV, postV]
+  <div .form-group :fvRequired view:.required :isJust $ fvErrors view:.has-error>
+    <label>#{fvLabel view}
+    ^{fvInput view}
+    $maybe errors <- fvErrors view
+      <span .help-block>#{errors}
+$maybe view <- mrolesV
+  <div .form-group :fvRequired view:.required :isJust $ fvErrors view:.has-error>
+    <label>_{MsgRoles}
+    <div .checkbox>
+      ^{fvInput view}
+    $maybe errors <- fvErrors view
+      <span .help-block>#{errors}
+
+$maybe (isProgV, contractV, commitV, wageV) <- mProgV
+  <hr>
+  $forall view <- [isProgV, contractV, commitV, wageV]
     <div .form-group :fvRequired view:.required :isJust $ fvErrors view:.has-error>
-        <label>#{fvLabel view}
-        ^{fvInput view}
-        $maybe errors <- fvErrors view
-            <span .help-block>#{errors}
-$maybe view <- mrolesView
-    <div .form-group :fvRequired view:.required :isJust $ fvErrors view:.has-error>
-        <label>_{MsgRoles}
-        <div .checkbox>
-            ^{fvInput view}
-        $maybe errors <- fvErrors view
-            <span .help-block>#{errors}
+      <label>#{fvLabel view}
+      ^{fvInput view}
+      $maybe errors <- fvErrors view
+        <span .help-block>#{errors}
 <div .form-group .optional>
-    <button .btn .btn-success type=submit>
-        $maybe label <- mlabel
-            _{label}
-        $nothing
-            _{MsgSubmit}
+  <button .btn .btn-success type=submit>
+    $maybe label <- mlabel
+      _{label}
+    $nothing
+      _{MsgSubmit}

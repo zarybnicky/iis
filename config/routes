@@ -1,31 +1,20 @@
-/                       HomeR              GET
-/robots.txt             RobotsR            GET
-/static                 StaticR            Static appStatic
+/robots.txt                  RobotsR            GET
+/static                      StaticR            Static appStatic
 
 -- Users and auth
-/auth                   AuthR              Auth getAuth
-/activate/#UserId/#Text UserAdminActivateR GET POST
-/profile                ProfileR           GET POST
-/registration           RegistrationR      GET POST
-/patch                  PatchR             GET POST
-/module                 ModuleR            GET POST
-/ticket                 TicketR            GET POST
+/auth                        AuthR              Auth getAuth
+/activate/#UserId/#Text      UserAdminActivateR GET POST
+/registration                RegistrationR      GET POST
 /users UserAdminR:
-    /              UserAdminIndexR         GET
-    /new           UserAdminNewR           GET POST
-    !/#UserId      UserAdminEditR          GET PATCH DELETE CHPASS RQPASS DEACTIVATE ACTIVATE
+    /                        UserAdminIndexR    GET
+    /new                     UserAdminNewR      GET POST
+    !/#UserId                UserAdminEditR     GET PATCH DELETE CHPASS RQPASS DEACTIVATE ACTIVATE
 
--- Unnecessary?
-/activity ActionLogAdminR:
-    /              ActionLogAdminIndexR    GET
-    /user/#UserId  ActionLogAdminUserR     GET
+/modules/*CrudRoute-Unit-Module            ModuleCrudR
+/patches/*CrudRoute-Unit-Patch             PatchCrudR
+/languages/*CrudRoute-Unit-Language        LanguageCrudR
+/tickets/*CrudRoute-ModuleId-Ticket        TicketCrudR
 
--- SimpleCRUD routes
-/modules/*CrudRoute-Unit-Module             ModuleCrudR
-/patches/*CrudRoute-Unit-Patch              PatchCrudR
-/languages/*CrudRoute-Unit-Language         LanguageCrudR
-/tickets/*CrudRoute-ModuleId-Ticket         TicketCrudR
-
--- Hopefully made obsolete by parent-ful CRUD...
--- /modules/#ModuleId/tickets
--- /modules/#ModuleId/tickets/#TicketId/patches
+/                            HomeR              GET
+/ticket                      TicketR            GET POST
+!/modules/#ModuleId/overview ModuleOverviewR    GET

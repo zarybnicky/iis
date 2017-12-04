@@ -7,18 +7,19 @@
 
 module App.Ticket.Handler where
 
-import App.User.Model (UserId, User(..), Programmer(..), EntityField(..))
 import App.Bug.Model (EntityField(..))
-import App.Ticket.Model (Ticket(..), TicketId, TicketStatus(..), EntityField(..))
 import App.Module.Model (Module(..), ModuleId)
-import ClassyPrelude.Yesod hiding (Request, FormMessage(..), (==.))
+import App.Ticket.Model (Ticket(..), TicketId, TicketStatus(..), EntityField(..))
+import App.User.Model (UserId)
+import App.Utils (optionsUsers, optionsProgrammers)
+import ClassyPrelude.Yesod hiding (Request, FormMessage(..), (==.), on)
 import Cms.Crud (CrudMessages(..), encodeClickableTable)
 import Cms.Crud.Simple
 import Cms.Crud.Route (CrudRoute(..), handleCrud)
 import Cms.Roles.Class (getCan)
 import Colonnade (headed)
 import qualified Data.Text as T
-import qualified Database.Esqueleto as E
+import Database.Esqueleto
 import Foundation
 import Message (AppMessage(..))
 import qualified Text.Blaze.Html5 as H
@@ -35,10 +36,7 @@ postTicketR = do
   ((res, form), enctype) <- runFormPost (ticketInsertForm uid)
   case res of
     FormSuccess t -> runDB (insert t) >> redirect TicketR
-    _ -> defaultLayout [whamlet|
-           <form enctype=#{enctype}>
-             ^{form}
-         |]
+    _ -> defaultLayout [whamlet|<form enctype=#{enctype}>^{form}|]
 
 handleTicketCrudR :: CrudRoute ModuleId Ticket -> Handler Html
 handleTicketCrudR =
@@ -51,10 +49,10 @@ handleTicketCrudR =
       can <- getCan
       render <- getUrlRenderParams
       xs :: [Entity Ticket] <-
-        runDB . E.select . E.from $ \(t `E.InnerJoin` b `E.InnerJoin` a) -> do
-          E.on (b E.^. BugId E.==. a E.^. AnnouncesBug)
-          E.on (a E.^. AnnouncesTicket E.==. t E.^. TicketId)
-          E.where_ (b E.^. BugModule E.==. E.val mid)
+        runDB . select . from $ \(t `InnerJoin` b `InnerJoin` a) -> do
+          on (b ^. BugId ==. a ^. AnnouncesBug)
+          on (a ^. AnnouncesTicket ==. t ^. TicketId)
+          where_ (b ^. BugModule ==. val mid)
           return t
       let entities =
             (id &&& fmap (`render` []) . flip can "GET" . TicketCrudR . EditR . entityKey) <$> xs
@@ -73,10 +71,10 @@ handleTicketCrudR =
     getParent :: TicketId -> YesodDB App ModuleId
     getParent k = do
       p :: [Entity Module] <-
-        E.select $
-        E.from $ \(b `E.InnerJoin` a `E.InnerJoin` m) -> do
-          E.on (b E.^. BugId E.==. a E.^. AnnouncesBug)
-          E.on (a E.^. AnnouncesTicket E.==. E.val k)
+        select $
+        from $ \(b `InnerJoin` a `InnerJoin` m) -> do
+          on (b ^. BugId ==. a ^. AnnouncesBug)
+          on (a ^. AnnouncesTicket ==. val k)
           return m
       case p of
         [] -> notFound
@@ -98,20 +96,9 @@ ticketForm m =
   Ticket <$> areq textField (bfs MsgName) (ticketName <$> m) <*>
   areq textField (bfs MsgDescription) (ticketDescription <$> m) <*>
   areq (selectField optionsEnum) (bfs MsgStatus) (ticketStatus <$> m) <*>
-  areq (selectField users) (bfs MsgAuthor) (ticketAuthor <$> m) <*>
-  aopt (selectField programmers) (bfs MsgAssignedTo) (ticketAssignedTo <$> m) <*
+  areq (selectField optionsUsers) (bfs MsgAuthor) (ticketAuthor <$> m) <*>
+  aopt (selectField optionsProgrammers) (bfs MsgAssignedTo) (ticketAssignedTo <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
-  where
-    users =
-      optionsPersistKey
-        []
-        [Asc UserId]
-        (mconcat $ ($) <$> [userFirstName, const " ", userLastName])
-    programmers =
-      optionsPersistKey
-        []
-        [Asc ProgrammerContractNum]
-        (T.pack . show . programmerContractNum)
 
 ticketMessages :: CrudMessages App Ticket
 ticketMessages = CrudMessages

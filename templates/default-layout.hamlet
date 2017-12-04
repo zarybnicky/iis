@@ -6,7 +6,7 @@
           <span .sr-only>Toggle navigation</span>
           <span .icon-bar></span>
         <h1>
-          <a .navbar-brand href="index.html">
+          <a .navbar-brand href="/">
             Bug Tracker
       <div #navbar .navbar-collapse.collapse>
         <ul .nav.navbar-nav>
@@ -19,13 +19,11 @@
               <a href="@{route}">#{label}
 
   <div .container>
-    $if not $ Just HomeR == mcurrentRoute
-      <ul .breadcrumb>
-        $forall bc <- parents
-          <li>
-            <a href="@{fst bc}">#{snd bc}
-
-        <li .active>#{title}
+    <ul .breadcrumb>
+      $forall (route, t) <- parents
+        <li>
+          <a href="@{route}">#{t}
+      <li .active>#{title}
 
     $maybe msg <- mmsg
       <div .alert.alert-info #message>#{msg}

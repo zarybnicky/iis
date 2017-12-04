@@ -7,18 +7,43 @@
 
 module App.Module.Handler where
 
-import App.User.Model (Programmer(..), EntityField(..))
-import App.Module.Model (Module(..))
-import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
+import App.Bug.Model (Bug(..), EntityField(..))
+import App.Module.Model (ModuleId, Module(..), EntityField(..))
+import App.Ticket.Model (Ticket(..), EntityField(..))
+import App.Utils (optionsProgrammers)
+import ClassyPrelude.Yesod hiding (Request, FormMessage(..), on, (==.))
 import Cms.Crud
 import Cms.Crud.Route
 import Colonnade (headed)
-import qualified Data.Text as T
+import Database.Esqueleto
 import Foundation
 import Message (AppMessage(..))
+import Settings (widgetFile)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as H
+import Yesod.Auth (maybeAuthId)
 import Yesod.Form.Bootstrap3
+
+getHomeR :: Handler Html
+getHomeR = do
+  mauth <- maybeAuthId
+  case mauth of
+    Nothing -> defaultLayout "Please log in or create an account to access this site"
+    Just _ -> do
+      modules <- runDB $ selectList [] [Asc ModuleName]
+      defaultLayout $(widgetFile "home")
+
+getModuleOverviewR :: ModuleId -> Handler Html
+getModuleOverviewR mid = do
+  m <- runDB $ get404 mid
+  xs :: [(Entity Ticket, Entity Bug)] <- runDB $ select $ from $ \(a `InnerJoin` b `InnerJoin` t) -> do
+    on (b ^. BugId ==. a ^. AnnouncesBug)
+    on (a ^. AnnouncesTicket ==. t ^. TicketId)
+    where_ (b ^. BugModule ==. val mid)
+    orderBy [asc (t ^. TicketId)]
+    return (t, b)
+  let entities = ClassyPrelude.Yesod.groupBy (\(a, _) (b, _) -> entityKey a == entityKey b) xs
+  defaultLayout $(widgetFile "module-overview")
 
 handleModuleCrudR :: CrudRoute () Module -> Handler Html
 handleModuleCrudR =
@@ -40,19 +65,13 @@ handleModuleCrudR =
 
 moduleForm :: Maybe Module -> UTCTime -> Form Module
 moduleForm m _ =
-  renderBootstrap3 BootstrapBasicForm $
+  renderBootstrap3 (BootstrapHorizontalForm (ColMd 0) (ColMd 2) (ColMd 0) (ColMd 10)) $
   Module <$>
   areq textField (bfs MsgName) (moduleName <$> m) <*>
   areq textField (bfs MsgDescription) (moduleDescription <$> m) <*>
   areq textField (bfs MsgRepository) (moduleRepository <$> m) <*>
-  areq (selectField programmers) (bfs MsgSupervisor) (moduleSupervisor <$> m) <*
+  areq (selectField optionsProgrammers) (bfs MsgSupervisor) (moduleSupervisor <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
-  where
-    programmers =
-      optionsPersistKey
-        []
-        [Asc ProgrammerContractNum]
-        (T.pack . show . programmerContractNum)
 
 moduleMessages :: CrudMessages App Module
 moduleMessages = CrudMessages

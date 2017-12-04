@@ -1,0 +1,7 @@
+<h1>Modules
+
+<ul>
+  $forall m <- modules
+    <li>
+      <a href=@{ModuleOverviewR (entityKey m)}>
+        #{moduleName (entityVal m)}

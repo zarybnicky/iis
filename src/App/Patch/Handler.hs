@@ -7,13 +7,12 @@
 
 module App.Patch.Handler where
 
-import App.User.Model (User(..), Programmer(..), EntityField(..))
 import App.Patch.Model (Patch(..), patchName)
+import App.Utils (optionsUsers, optionsProgrammers)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
 import Cms.Crud
 import Cms.Crud.Route
 import Colonnade (headed)
-import qualified Data.Text as T
 import Foundation
 import Message (AppMessage(..))
 import qualified Text.Blaze.Html5 as H
@@ -46,22 +45,11 @@ patchForm m _ =
   renderBootstrap3 BootstrapBasicForm $
   Patch <$>
   areq textField (bfs MsgContent) (patchContent <$> m) <*>
-  areq (selectField users) (bfs MsgAuthor) (patchAuthor <$> m) <*>
+  areq (selectField optionsUsers) (bfs MsgAuthor) (patchAuthor <$> m) <*>
   areq dayField (bfs MsgCreationDate) (patchCreationDate <$> m) <*>
-  aopt (selectField programmers) (bfs MsgApproved) (patchApproved <$> m) <*>
+  aopt (selectField optionsProgrammers) (bfs MsgApproved) (patchApproved <$> m) <*>
   aopt dayField (bfs MsgApprovedDate) (patchApprovalDate <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
-  where
-    users =
-      optionsPersistKey
-        []
-        [Asc UserId]
-        (mconcat $ ($) <$> [userFirstName, const " ", userLastName])
-    programmers =
-      optionsPersistKey
-        []
-        [Asc ProgrammerContractNum]
-        (T.pack . show . programmerContractNum)
 
 patchMessages :: CrudMessages App Patch
 patchMessages = CrudMessages

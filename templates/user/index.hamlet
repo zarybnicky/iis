@@ -1,51 +1,43 @@
-<div .row>
-    <div .col-xs-12>
-        $maybe r <- can (HomeR) "GET"
-            <a href=@{r}>
-                <span .glyphicon .glyphicon-arrow-left>
-                _{MsgBack}
 <div .page-header>
-    <h1>_{MsgUserIndex}
-    $maybe r <- can (UserAdminR UserAdminNewR) "GET"
-        <a .btn .btn-primary .btn-xs href=@{r}>
-            <span .glyphicon .glyphicon-plus>
-            _{MsgNewUser}
+  <h1>_{MsgUserIndex}
+  $maybe r <- can (UserAdminR UserAdminNewR) "GET"
+    <a .btn .btn-primary .btn-xs href=@{r}>
+      <span .glyphicon .glyphicon-plus>
+      _{MsgNewUser}
 <div .row>
-    <div .col-xs-12>
-        $if null users
-            <p .alert .alert-info>_{MsgNoUsersFound}
-        $else
-            <div .table-responsive>
-                <table .table .table-striped .table-hover>
-                    <thead>
-                        <tr>
-                            <th>_{MsgEmail}
-                            <th .text-right>Roles
-                            <th .text-right>_{MsgAccountStatus}
-                            <th>_{MsgCreatedOn}
-                            <th>_{MsgLastLogin}
-                    <tbody>
-                        $forall ((Entity userId user), roles) <- users
-                            $with mroute <- can (UserAdminR $ UserAdminEditR userId) "GET"
-                                <tr :isJust mroute:onclick="document.location.href='@{fromJust mroute}'">
-                                    <td>
-                                        $maybe r <- mroute
-                                            <a href=@{r}>#{userEmail user}
-                                        $nothing
-                                            #{userEmail user}
-                                    <td .text-right>
-                                        $forall role <- roles
-                                            <span .label .label-primary>#{show role}
-                                    $maybe _ <- userToken user
-                                        <td .text-right .text-warning>_{MsgAccountPending}
-                                    $nothing
-                                        $if userActive user
-                                            <td .text-right .text-success>_{MsgAccountActive}
-                                        $else
-                                            <td .text-right .text-danger>_{MsgAccountInactive}
-                                    <td>#{show $ utctDay $ userCreatedAt user}
-                                    <td>
-                                        $maybe ll <- userLastLogin user
-                                            #{humanReadableTimeI18N' hrtLocale timeNow $ ll}
-                                        $nothing
-                                            -
+  <div .col-xs-12>
+    $if null users
+      <p .alert .alert-info>_{MsgNoUsersFound}
+    $else
+      <div .table-responsive>
+        <table .table .table-striped .table-hover>
+          <thead>
+            <tr>
+              <th>_{MsgEmail}
+              <th .text-right>Roles
+              <th .text-right>_{MsgContractNum}
+              <th>_{MsgCreatedOn}
+              <th>_{MsgLastLogin}
+          <tbody>
+            $forall ((Entity userId user, mprog), roles) <- users
+              $with mroute <- can (UserAdminR $ UserAdminEditR userId) "GET"
+                <tr :isJust mroute:onclick="document.location.href='@{fromJust mroute}'">
+                  <td>
+                    $maybe r <- mroute
+                      <a href=@{r}>#{userEmail user}
+                    $nothing
+                      #{userEmail user}
+                  <td .text-right>
+                    $forall role <- roles
+                      <span .label .label-primary>#{show role}
+                  <td .text-right>
+                    $maybe num <- fmap programmerContractNum $ fmap entityVal mprog
+                      #{num}
+                    $nothing
+                      -
+                  <td>#{show $ utctDay $ userCreatedAt user}
+                  <td>
+                    $maybe ll <- userLastLogin user
+                      #{humanReadableTimeI18N' hrtLocale timeNow $ ll}
+                    $nothing
+                      -

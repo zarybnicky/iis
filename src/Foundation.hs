@@ -90,9 +90,7 @@ instance Yesod App where
     let mkMenu n r = when (isJust $ can r "GET") $ tell [(n, r)]
     let navbarLeft :: [(Text, Route App)] = execWriter $ do
           tell [("Home", HomeR)]
-          mkMenu "Ticket" TicketR
-          mkMenu "Patch" PatchR
-          mkMenu "Module" ModuleR
+          mkMenu "New ticket" TicketR
           mkMenu "Accounts" (UserAdminR UserAdminIndexR)
     let navbarRight = execWriter $ do
           when (isNothing muser) $ tell [("Register", RegistrationR)]
@@ -140,15 +138,48 @@ instance Yesod App where
 instance YesodBreadcrumbs App where
   breadcrumb HomeR = return ("Home", Nothing)
   breadcrumb (AuthR _) = return ("Login", Just HomeR)
-  breadcrumb ProfileR = return ("Profile", Just HomeR)
   breadcrumb RegistrationR = return ("Registration", Just HomeR)
-  breadcrumb TicketR = return ("Ticket", Just HomeR)
-  breadcrumb ModuleR = return ("Module", Just HomeR)
-  breadcrumb PatchR = return ("Patch", Just HomeR)
+  breadcrumb TicketR = return ("New ticket", Just HomeR)
+  breadcrumb (ModuleOverviewR _) = return ("Module overview", Just HomeR)
   breadcrumb (UserAdminR UserAdminIndexR) = return ("User management", Just HomeR)
   breadcrumb (UserAdminR (UserAdminEditR _)) = return ("Edit", Just (UserAdminR UserAdminIndexR))
   breadcrumb (UserAdminR UserAdminNewR) = return ("Add", Just (UserAdminR UserAdminIndexR))
+  breadcrumb (ModuleCrudR _) = return ("Module administration", Just HomeR)
+  breadcrumb (PatchCrudR _) = return ("Patch administration", Just HomeR)
+  breadcrumb (LanguageCrudR _) = return ("Language administration", Just HomeR)
+  breadcrumb (TicketCrudR _) = return ("Ticket administration", Just HomeR)
   breadcrumb  _ = return ("unknown", Nothing)
+
+instance CmsRoles App where
+  type Roles App = RoleName
+
+  actionAllowedFor RobotsR "GET" = AllowAll
+  actionAllowedFor HomeR "GET" = AllowAll
+  actionAllowedFor (AuthR _) _ = AllowAll
+  actionAllowedFor RegistrationR _ = AllowAll
+  actionAllowedFor TicketR _ = AllowAuthenticated
+  actionAllowedFor (ModuleOverviewR _) _ = AllowAuthenticated
+  actionAllowedFor (UserAdminR UserAdminNewR) _ = AllowRoles $ S.fromList [RoleAdmin]
+  actionAllowedFor (UserAdminR _) _ = AllowAuthenticated
+  actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
+
+  -- cache user roles to reduce the amount of DB calls
+  getUserRoles userId =
+    cachedBy cacheKey . fmap toRoleSet . runDB $
+    selectList [UserRoleUserId ==. userId] []
+    where
+      cacheKey = encodeUtf8 $ toPathPiece userId
+      toRoleSet = S.fromList . map (userRoleRoleName . entityVal)
+
+  setUserRoles userId rs =
+    runDB $ do
+      deleteWhere [UserRoleUserId ==. userId]
+      mapM_ (insert_ . UserRole userId) $ S.toList rs
+
+  mayAssignRoles = do
+    authId <- requireAuthId
+    roles <- getUserRoles authId
+    return $ S.member RoleAdmin roles
 
 instance RenderMessage App FormMessage where
   renderMessage _ _ = defaultFormMessage
@@ -168,7 +199,7 @@ instance YesodAuth App where
   type AuthId App = UserId
 
   loginDest _ = HomeR
-  logoutDest _ = HomeR
+  logoutDest _ = AuthR LoginR
   redirectToReferer _ = True
 
   authenticate creds = runDB $ do
@@ -216,40 +247,6 @@ instance CmsActionLog App where
 instance CmsMailer App where
   sendMail =
     liftIO . sendMailWithLogin "mail.zarybnicky.com" "dummy@zarybnicky.com" "dummy"
-
-instance CmsRoles App where
-  type Roles App = RoleName
-
-  actionAllowedFor RobotsR "GET" = AllowAll
-  actionAllowedFor HomeR "GET" = AllowAll
-  actionAllowedFor (AuthR LogoutR) _ = AllowAuthenticated
-  actionAllowedFor (AuthR _) _ = AllowAll
-  actionAllowedFor RegistrationR _ = AllowAll
-  actionAllowedFor ProfileR _ = AllowAuthenticated
-  actionAllowedFor ModuleR _ = AllowRoles $ S.fromList [RoleProgrammer]
-  actionAllowedFor PatchR _ = AllowAuthenticated
-  actionAllowedFor TicketR _ = AllowAuthenticated
-  actionAllowedFor (UserAdminR UserAdminNewR) _ = AllowRoles $ S.fromList [RoleAdmin]
-  actionAllowedFor (UserAdminR _) _ = AllowAuthenticated
-  actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
-
-  -- cache user roles to reduce the amount of DB calls
-  getUserRoles userId =
-    cachedBy cacheKey . fmap toRoleSet . runDB $
-    selectList [UserRoleUserId ==. userId] []
-    where
-      cacheKey = encodeUtf8 $ toPathPiece userId
-      toRoleSet = S.fromList . map (userRoleRoleName . entityVal)
-
-  setUserRoles userId rs =
-    runDB $ do
-      deleteWhere [UserRoleUserId ==. userId]
-      mapM_ (insert_ . UserRole userId) $ S.toList rs
-
-  mayAssignRoles = do
-    authId <- requireAuthId
-    roles <- getUserRoles authId
-    return $ S.member RoleAdmin roles
 
 defaultAdminAuthLayout :: Widget -> Handler Html
 defaultAdminAuthLayout widget = do
