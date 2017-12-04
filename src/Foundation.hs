@@ -201,6 +201,7 @@ instance CmsRoles App where
   actionAllowedFor (EditPatchR _) _ = AllowAuthenticated
   actionAllowedFor (DeletePatchR _) _ = AllowAuthenticated
   actionAllowedFor (ViewPatchR _) _ = AllowAuthenticated
+  actionAllowedFor (CommentPatchR _ _) _ = AllowAuthenticated
   actionAllowedFor PatchGridR _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchApproveR _ _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchDeployR _ _) _ = AllowRoles $ S.fromList [RoleAdmin]

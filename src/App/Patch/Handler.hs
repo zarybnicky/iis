@@ -42,7 +42,9 @@ getMyPatchesR = do
       <tbody>
         $forall Entity k p <- ps
           <tr>
-            <td>#{patchName p}
+            <td>
+              <a href=@{ViewPatchR k}>
+                #{patchName p}
             <td>#{tshow $ patchCreationDate p}
             <td>
               <a href=@{EditPatchR k}>Edit
@@ -93,13 +95,45 @@ getDeletePatchR pid = do
 getViewPatchR :: PatchId -> Handler Html
 getViewPatchR pid = do
   p <- runDB $ get404 pid
+  cs <- runDB $ selectList [] [Asc PatchCommentId]
+  uid <- requireAuthId
+  patchLines <- flip mapM (zip [0..] $ T.splitOn "\n" $ patchContent p) $ \(i, l) -> do
+    (form, enctype) <- generateFormPost (patchUserCommentForm Nothing pid uid i)
+    let cls = case T.take 1 l of
+          "+" -> ("green" :: Text)
+          "-" -> "red"
+          _ -> ""
+    return (i, cls, l, form, enctype)
+  let filterCs i = filter (\x -> patchCommentLine (entityVal x) == i) cs
   defaultLayout $ [whamlet|
     <h1>Patch view
     Created: #{tshow $ patchCreationDate p}
-    <pre>
-      #{patchContent p}
-    
+    $forall (i, cls, line, form, enctype) <- patchLines
+      <div style="background-color: white;">
+        <div>
+          <a href="#" class="open-comment">+
+          <span style="font-family:monospace;background-color:white;" class="#{cls}">#{line}
+        $forall Entity _ c <- filterCs i
+          <div style="background-color:#eee;margin-left:1rem">
+            #{patchCommentContent c}
+        <form style="display:none" action=@{CommentPatchR pid i} method="post" enctype=#{enctype}>^{form}
+    <script>
+      \$('.open-comment').click(function(e) {
+      \  e.preventDefault();
+      \  $(this).parent().parent().children('form').show();
+      \});
   |]
+
+postCommentPatchR :: PatchId -> Int -> Handler Html
+postCommentPatchR pid line = do
+  uid <- requireAuthId
+  ((res, _form), _enctype) <- runFormPost (patchUserCommentForm Nothing pid uid line)
+  case res of
+    FormSuccess t -> do
+      _ <- runDB (insert t)
+      setMessage "Patch comment added"
+      redirect (ViewPatchR pid)
+    _ -> redirect (ViewPatchR pid)
 
 getPatchGridR :: Handler Html
 getPatchGridR = do

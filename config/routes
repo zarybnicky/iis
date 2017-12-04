@@ -35,6 +35,7 @@
 /my-patches/edit/#PatchId    EditPatchR         GET POST
 /my-patches/delete/#PatchId  DeletePatchR       GET
 /my-patches/view/#PatchId    ViewPatchR         GET
+/my-patches/comment/#PatchId/#Int CommentPatchR      POST
 /patch/grid                  PatchGridR         GET
 /patch/approve/#PatchId/#Bool PatchApproveR     POST
 /patch/deploy/#PatchId/#Bool  PatchDeployR      POST

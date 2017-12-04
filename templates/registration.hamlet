@@ -1,2 +1,2 @@
-<form enctype=#{enctype}>
+<form method="post" enctype=#{enctype}>
   ^{form}
