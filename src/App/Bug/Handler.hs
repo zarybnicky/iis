@@ -9,10 +9,12 @@ module App.Bug.Handler where
 
 import App.Bug.Model
 import App.Module.Model (Module(..), EntityField(..))
+import App.Patch.Model
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
 import Cms.Crud
 import Cms.Crud.Route (CrudRoute(..), handleCrud)
 import Colonnade (headed)
+import qualified Data.Text as T
 import Foundation
 import Message (AppMessage(..))
 import qualified Text.Blaze.Html5 as H
@@ -76,12 +78,13 @@ bugForm m _ =
   Bug <$> areq textField (bfs MsgName) (bugName <$> m) <*>
   areq textField (bfs MsgDescription) (bugDescription <$> m) <*>
   areq intField (bfs MsgSeverity) (bugSeverity <$> m) <*>
+  aopt intField (bfs MsgVulnerability) (bugVulnerability <$> m) <*>
   areq (selectField optionsModules) (bfs MsgModule) (bugModule <$> m) <*>
-  pure (bugIsRepairedBy =<< m) <*>
-  pure (bugCauses =<< m) <*
+  aopt (selectField optionsPatches) (bfs MsgPatch) (bugIsRepairedBy <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
     optionsModules = optionsPersistKey [] [Asc ModuleName] moduleName
+    optionsPatches = optionsPersistKey [] [] (T.take 20 . patchContent)
 
 bugMessages :: CrudMessages App Bug
 bugMessages = CrudMessages

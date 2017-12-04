@@ -15,7 +15,6 @@ import App.Patch.Model
 import App.Roles.Model
 import App.Ticket.Model
 import App.User.Model
-import App.Vulnerability.Model
 import ClassyPrelude.Yesod
 import qualified Data.Text.IO as T
 import Database.Persist.Sql (Migration)
@@ -32,7 +31,6 @@ migrateAll = sequence_
   , migrateRoles
   , migrateTicket
   , migrateUser
-  , migrateVulnerability
   ]
 
 migrateCustom

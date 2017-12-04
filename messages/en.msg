@@ -155,6 +155,7 @@ User: User
 Language: Language
 Patch: Patch
 Line: Line
+Vulnerability: Vulnerability
 
 Dashboard: Dashboard
 Administration: Administrace
