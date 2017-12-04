@@ -10,6 +10,7 @@
 module App.Language.Model
   ( LanguageId
   , Language(..)
+  , Unique(..)
   , EntityField(..)
   , migrateLanguage
   ) where
@@ -19,4 +20,5 @@ import ClassyPrelude.Yesod
 share [mkPersist sqlSettings, mkMigrate "migrateLanguage"] [persistLowerCase|
 Language
     name Text
+    UniqueLanguage name
 |]

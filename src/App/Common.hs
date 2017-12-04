@@ -42,10 +42,10 @@ $maybe r <- can (BugCrudR (IndexR unit)) "GET"
 $maybe r <- can (AnnouncesCrudR (IndexR unit)) "GET"
   <p>
     <a href=@{r}>Ticket/bug links
-$maybe r <- can (KnowledgeCrudR (IndexR unit)) "GET"
-  <p>
-    <a href=@{r}>User/language links
 $maybe r <- can (PatchCrudR (IndexR unit)) "GET"
   <p>
     <a href=@{r}>Patches
+$maybe r <- can (PatchCommentCrudR (IndexR unit)) "GET"
+  <p>
+    <a href=@{r}>Patch comments
 |]

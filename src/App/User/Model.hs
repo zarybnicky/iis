@@ -47,6 +47,7 @@ User json
     createdAt    UTCTime
     lastLogin    UTCTime Maybe
     deletedAt    UTCTime Maybe
+    languages    [LanguageId]
     UniqueAuth   email active
     UniqueUser   ident
     UniqueEmail  email
@@ -58,11 +59,6 @@ Programmer
     commitment Int
     hourlyWage Int
     UniqueProgrammer user
-
-Knowledge
-    user UserId
-    language LanguageId
-    UniqueKnowledge user language
 |]
 
 _userIdent :: Functor f => (Text -> f Text) -> User -> f User
@@ -93,6 +89,8 @@ _userLastLogin :: Functor f => (Maybe UTCTime -> f (Maybe UTCTime)) -> User -> f
 _userLastLogin f u = (\a' -> u {userLastLogin = a'}) <$> f (userLastLogin u)
 _userDeletedAt :: Functor f => (Maybe UTCTime -> f (Maybe UTCTime)) -> User -> f User
 _userDeletedAt f u = (\a' -> u {userDeletedAt = a'}) <$> f (userDeletedAt u)
+_userLanguages :: Functor f => ([LanguageId] -> f [LanguageId]) -> User -> f User
+_userLanguages f u = (\a' -> u {userLanguages = a'}) <$> f (userLanguages u)
 
 instance HashDBUser User where
     userPasswordHash = userPassword

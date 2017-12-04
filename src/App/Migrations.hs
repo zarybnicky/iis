@@ -45,6 +45,7 @@ migrateCustom
 migrateCustom s =
   sequence_ . fmap ($ s) $
   [ insertUsers
+  , insertLanguages
   ]
 
 insertUsers
@@ -74,6 +75,21 @@ insertUsers _ = do
         maybe (return ()) (void . insert . ($ uid)) p
         mapM_ (insert_ . UserRole uid) rs
 
+insertLanguages
+  :: ( BaseBackend backend ~ SqlBackend
+     , PersistStoreWrite backend
+     , PersistUniqueRead backend
+     , MonadIO m
+     )
+  => AppSettings -> ReaderT backend m ()
+insertLanguages _ = do
+  let langs = [Language "C++", Language "PHP", Language "Haskell"]
+  forM_ langs $ \l -> do
+    m <- getBy (UniqueLanguage $ languageName l)
+    case m of
+      Just _ -> return ()
+      Nothing -> void $ insert l
+
 mkUser :: UTCTime -> Text -> Text -> Text -> Text -> IO User
 mkUser now name surname email pass = do
   uuid <- liftIO generateUUID
@@ -93,3 +109,4 @@ mkUser now name surname email pass = do
       now
       Nothing
       Nothing
+      []

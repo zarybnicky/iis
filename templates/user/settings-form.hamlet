@@ -1,5 +1,5 @@
 #{extra}
-$forall view <- [fnameV, lnameV, emailV, birthV, addrV, cityV, postV]
+$forall view <- [fnameV, lnameV, emailV, birthV, addrV, cityV, postV, langV]
   <div .form-group :fvRequired view:.required :isJust $ fvErrors view:.has-error>
     <label>#{fvLabel view}
     ^{fvInput view}

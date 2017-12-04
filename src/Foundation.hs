@@ -149,12 +149,11 @@ instance YesodBreadcrumbs App where
   breadcrumb EntitiesR = return ("Entity management", Just HomeR)
   breadcrumb (ModuleCrudR _) = return ("Module administration", Just EntitiesR)
   breadcrumb (PatchCrudR _) = return ("Patch administration", Just EntitiesR)
+  breadcrumb (PatchCommentCrudR _) = return ("Patch comment administration", Just EntitiesR)
   breadcrumb (LanguageCrudR _) = return ("Language administration", Just EntitiesR)
   breadcrumb (TicketCrudR _) = return ("Ticket administration", Just EntitiesR)
   breadcrumb (BugCrudR _) = return ("Bug administration", Just EntitiesR)
   breadcrumb (AnnouncesCrudR _) = return ("Ticket/bug link administration", Just EntitiesR)
-  breadcrumb (KnowledgeCrudR _) = return ("User/language link administration", Just EntitiesR)
-  breadcrumb (WrittenInCrudR _) = return ("Module/language link administration", Just EntitiesR)
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance CmsRoles App where
@@ -174,9 +173,8 @@ instance CmsRoles App where
   actionAllowedFor (TicketCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (BugCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (AnnouncesCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
-  actionAllowedFor (KnowledgeCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
-  actionAllowedFor (WrittenInCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
+  actionAllowedFor (PatchCommentCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
 
   -- cache user roles to reduce the amount of DB calls

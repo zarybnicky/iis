@@ -34,23 +34,17 @@ AnnouncesAdminNew: New ticket/bug link
 AnnouncesAdminEdit: Edit Ticket/bug link
 NoAnnouncesFound: No ticket/bug links found
 
-KnowledgeAdmin: User/language links
-KnowledgeAdminIndex: User/language link overview
-KnowledgeAdminNew: New user/language link
-KnowledgeAdminEdit: Edit user/language link
-NoKnowledgeFound: No user/language links found
-
-WrittenInAdmin: Module/language links
-WrittenInAdminIndex: Module/language link overview
-WrittenInAdminNew: New module/language link
-WrittenInAdminEdit: Edit module/language link
-NoWrittenInFound: No module/language links found
-
 PatchAdmin: Patch
 PatchAdminIndex: Patch overview
 PatchAdminNew: New patch
 PatchAdminEdit: Edit patch
-NoPatchFound: No patch found
+NoPatchFound: No patches found
+
+PatchCommentAdmin: Patch comments
+PatchCommentAdminIndex: Patch comment overview
+PatchCommentAdminNew: New patch comment
+PatchCommentAdminEdit: Edit patch comment
+NoPatchCommentFound: No patch comments found
 
 Back: Back
 Save: Save
@@ -92,18 +86,15 @@ LogBugDeleted name@Text: Deleted bug "#{name}"
 LogPatchCreated name@Text: Created patch "#{name}"
 LogPatchUpdated name@Text: Updated patch "#{name}"
 LogPatchDeleted name@Text: Deleted patch "#{name}"
+LogPatchCommentCreated name@Text: Created patch comment "#{name}"
+LogPatchCommentUpdated name@Text: Updated patch comment "#{name}"
+LogPatchCommentDeleted name@Text: Deleted patch comment "#{name}"
 LogLanguageCreated name@Text: Created language "#{name}"
 LogLanguageUpdated name@Text: Updated language "#{name}"
 LogLanguageDeleted name@Text: Deleted language "#{name}"
 LogAnnouncesCreated name@Text: Created announces "#{name}"
 LogAnnouncesUpdated name@Text: Updated announces "#{name}"
 LogAnnouncesDeleted name@Text: Deleted announces "#{name}"
-LogKnowledgeCreated name@Text: Created knowledge "#{name}"
-LogKnowledgeUpdated name@Text: Updated knowledge "#{name}"
-LogKnowledgeDeleted name@Text: Deleted knowledge "#{name}"
-LogWrittenInCreated name@Text: Created writtenIn "#{name}"
-LogWrittenInUpdated name@Text: Updated writtenIn "#{name}"
-LogWrittenInDeleted name@Text: Deleted writtenIn "#{name}"
 LogUserCreated name@Text: Created user "#{name}"
 LogUserUpdated name@Text: Updated user "#{name}"
 LogUserDeleted name@Text: Deleted user "#{name}"
@@ -162,6 +153,8 @@ Ticket: Ticket
 DeploymentDate: Deployment date
 User: User
 Language: Language
+Patch: Patch
+Line: Line
 
 Dashboard: Dashboard
 Administration: Administrace

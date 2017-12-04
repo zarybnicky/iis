@@ -80,12 +80,15 @@ handleModuleCrudR =
 moduleInsertForm :: Form Module
 moduleInsertForm =
   renderBootstrap3 BootstrapBasicForm $
-  Module <$> 
+  Module <$>
   areq textField (bfs MsgName) Nothing <*>
   fmap unTextarea (areq textareaField (bfs MsgDescription) Nothing) <*>
   areq textField (bfs MsgRepository) Nothing <*>
-  areq (selectField optionsProgrammers) (bfs MsgSupervisor) Nothing <*
+  areq (selectField optionsProgrammers) (bfs MsgSupervisor) Nothing <*>
+  areq (multiSelectField optionsLanguages) (bfs MsgLanguage) Nothing <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+  where
+    optionsLanguages = optionsPersistKey [] [Asc LanguageName] languageName
 
 moduleForm :: Maybe Module -> UTCTime -> Form Module
 moduleForm m _ =
@@ -94,8 +97,11 @@ moduleForm m _ =
   areq textField (bfs MsgName) (moduleName <$> m) <*>
   areq textField (bfs MsgDescription) (moduleDescription <$> m) <*>
   areq textField (bfs MsgRepository) (moduleRepository <$> m) <*>
-  areq (selectField optionsProgrammers) (bfs MsgSupervisor) (moduleSupervisor <$> m) <*
+  areq (selectField optionsProgrammers) (bfs MsgSupervisor) (moduleSupervisor <$> m) <*>
+  areq (multiSelectField optionsLanguages) (bfs MsgLanguage) Nothing <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+  where
+    optionsLanguages = optionsPersistKey [] [Asc LanguageName] languageName
 
 moduleMessages :: CrudMessages App Module
 moduleMessages = CrudMessages
@@ -108,52 +114,4 @@ moduleMessages = CrudMessages
   , crudMsgCreated = SomeMessage . MsgLogModuleCreated . moduleName
   , crudMsgUpdated = SomeMessage . MsgLogModuleUpdated . moduleName
   , crudMsgDeleted = SomeMessage . MsgLogModuleDeleted . moduleName
-  }
-
-
-
-writtenInName :: ModuleLanguage -> Text
-writtenInName a =
-  toPathPiece (moduleLanguageModule a) <> " " <> toPathPiece (moduleLanguageLanguage a)
-
-handleWrittenInCrudR :: CrudRoute () ModuleLanguage -> Handler Html
-handleWrittenInCrudR =
-  handleCrud . flip simplerCrudToHandler WrittenInCrudR $
-  SimplerCrud
-  { crudSimplerMsg = writtenInMessages
-  , crudSimplerDb = defaultCrudDb
-  , crudSimplerForm = writtenInForm
-  , crudSimplerTable =
-      encodeClickableTable $
-      mconcat
-        [ headed "Name" $ \(e, mr) ->
-            case mr of
-              Nothing -> toHtml . writtenInName $ entityVal e
-              Just r ->
-                H.a (toHtml . writtenInName $ entityVal e) H.! H.href (H.toValue r)
-        ]
-  }
-
-writtenInForm :: Maybe ModuleLanguage -> UTCTime -> Form ModuleLanguage
-writtenInForm m _ =
-  renderBootstrap3 BootstrapBasicForm $
-  ModuleLanguage <$>
-  areq (selectField optionsModules) (bfs MsgModule) (moduleLanguageModule <$> m) <*>
-  areq (selectField optionsLanguages) (bfs MsgLanguage) (moduleLanguageLanguage <$> m) <*
-  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
-  where
-    optionsModules = optionsPersistKey [] [] moduleName
-    optionsLanguages = optionsPersistKey [] [] languageName
-
-writtenInMessages :: CrudMessages App ModuleLanguage
-writtenInMessages = CrudMessages
-  { crudMsgBack = SomeMessage MsgBack
-  , crudMsgDelete = SomeMessage MsgDelete
-  , crudMsgIndex = SomeMessage MsgWrittenInAdminIndex
-  , crudMsgNew = SomeMessage MsgWrittenInAdminNew
-  , crudMsgEdit = SomeMessage MsgWrittenInAdminEdit
-  , crudMsgNoEntities = SomeMessage MsgNoWrittenInFound
-  , crudMsgCreated = SomeMessage . MsgLogWrittenInCreated . writtenInName
-  , crudMsgUpdated = SomeMessage . MsgLogWrittenInUpdated . writtenInName
-  , crudMsgDeleted = SomeMessage . MsgLogWrittenInDeleted . writtenInName
   }

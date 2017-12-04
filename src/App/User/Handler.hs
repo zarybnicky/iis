@@ -15,14 +15,10 @@ module App.User.Handler where
 
 import App.Language.Model
 import App.User.Model
-import App.Utils (optionsUsers)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
 import Cms.Class (adminLayout)
-import Cms.Crud
-import Cms.Crud.Route
 import Cms.ActionLog.Class (logMsg)
 import Cms.Roles.Class (Roles, getCan, getUserRoles, setUserRoles, mayAssignRoles, defaultRoles)
-import Colonnade (headed)
 import Control.Arrow ((&&&))
 import Control.Lens
 import Data.Maybe (fromJust, fromMaybe, isJust)
@@ -34,8 +30,6 @@ import Foundation
 import Message (AppMessage(..))
 import Settings
 import Text.Hamlet (hamletFile)
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Auth (Creds(..), Route(LoginR), requireAuthId, setCreds, authLayout)
 import Yesod.Auth.Email (saltPass)
 import Yesod.Auth.HashDB (setPassword)
@@ -76,12 +70,14 @@ registrationForm original now ident =
    pure Nothing <*>
    pure now <*>
    pure Nothing <*>
-   pure Nothing) <*>
+   pure Nothing <*>
+   areq (multiSelectField optionsLanguages) (bfs MsgLanguage) Nothing) <*>
   (ComparePassword
     <$> areq passwordField (withName "original-pw" $ bfs MsgPassword) Nothing
     <*> areq comparePasswordField (bfs MsgConfirm) Nothing) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
+    optionsLanguages = optionsPersistKey [] [Asc LanguageName] languageName
     comparePasswordField = check comparePasswords passwordField
     comparePasswords pw
       | pw == fromMaybe "" original = Right pw
@@ -103,6 +99,7 @@ accountSettingsForm
   -> MForm Handler (FormResult (User, Maybe (Key User -> Programmer), [Roles App]), Widget)
 accountSettingsForm user mprog roles mlabel extra = do
   maRoles <- lift mayAssignRoles
+  let optionsLanguages = optionsPersistKey [] [Asc LanguageName] languageName
   -- User fields
   (fnameR, fnameV) <- mreq textField (bfs MsgFirstName) (Just $ userFirstName user)
   (lnameR, lnameV) <- mreq textField (bfs MsgLastName) (Just $ userLastName user)
@@ -111,6 +108,7 @@ accountSettingsForm user mprog roles mlabel extra = do
   (addrR, addrV) <- mopt textField (bfs MsgAddress) (Just $ userAddress user)
   (cityR, cityV) <- mopt textField (bfs MsgCity) (Just $ userCity user)
   (postR, postV) <- mopt intField (bfs MsgPostalCode) (Just $ userPostalCode user)
+  (langR, langV) <- mreq (multiSelectField optionsLanguages) (bfs MsgLanguage) (Just $ userLanguages user)
 
   (rolesR, mrolesV) <- if maRoles
     then second Just <$> mreq (checkboxesField roleList) "Not used" (Just $ S.toList roles)
@@ -136,6 +134,7 @@ accountSettingsForm user mprog roles mlabel extra = do
         <**> fmap (set _userAddress) addrR
         <**> fmap (set _userCity) cityR
         <**> fmap (set _userPostalCode) postR
+        <**> fmap (set _userLanguages) langR
 
   return ((,,) <$> userR <*> mProgR <*> rolesR, $(widgetFile "user/settings-form"))
   where
@@ -181,6 +180,7 @@ generateUserWithEmail e = do
     , userCreatedAt = timeNow
     , userLastLogin = Nothing
     , userDeletedAt = Nothing
+    , userLanguages = []
     }
 
 -- | Helper to create an empty user.
@@ -467,49 +467,3 @@ postUserAdminActivateR userId token = do
       authLayout $ do
         setTitleI MsgAccountAlreadyActivated
         $(widgetFile "user/account-already-activated")
-
-
-knowledgeName :: Knowledge -> Text
-knowledgeName a =
-  toPathPiece (knowledgeUser a) <> " " <> toPathPiece (knowledgeLanguage a)
-
-handleKnowledgeCrudR :: CrudRoute () Knowledge -> Handler Html
-handleKnowledgeCrudR =
-  handleCrud . flip simplerCrudToHandler KnowledgeCrudR $
-  SimplerCrud
-  { crudSimplerMsg = knowledgeMessages
-  , crudSimplerDb = defaultCrudDb
-  , crudSimplerForm = knowledgeForm
-  , crudSimplerTable =
-      encodeClickableTable $
-      mconcat
-        [ headed "Name" $ \(e, mr) ->
-            case mr of
-              Nothing -> toHtml . knowledgeName $ entityVal e
-              Just r ->
-                H.a (toHtml . knowledgeName $ entityVal e) H.! H.href (H.toValue r)
-        ]
-  }
-
-knowledgeForm :: Maybe Knowledge -> UTCTime -> Form Knowledge
-knowledgeForm m _ =
-  renderBootstrap3 BootstrapBasicForm $
-  Knowledge <$>
-  areq (selectField optionsUsers) (bfs MsgUser) (knowledgeUser <$> m) <*>
-  areq (selectField optionsLanguages) (bfs MsgLanguage) (knowledgeLanguage <$> m) <*
-  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
-  where
-    optionsLanguages = optionsPersistKey [] [] languageName
-
-knowledgeMessages :: CrudMessages App Knowledge
-knowledgeMessages = CrudMessages
-  { crudMsgBack = SomeMessage MsgBack
-  , crudMsgDelete = SomeMessage MsgDelete
-  , crudMsgIndex = SomeMessage MsgKnowledgeAdminIndex
-  , crudMsgNew = SomeMessage MsgKnowledgeAdminNew
-  , crudMsgEdit = SomeMessage MsgKnowledgeAdminEdit
-  , crudMsgNoEntities = SomeMessage MsgNoKnowledgeFound
-  , crudMsgCreated = SomeMessage . MsgLogKnowledgeCreated . knowledgeName
-  , crudMsgUpdated = SomeMessage . MsgLogKnowledgeUpdated . knowledgeName
-  , crudMsgDeleted = SomeMessage . MsgLogKnowledgeDeleted . knowledgeName
-  }

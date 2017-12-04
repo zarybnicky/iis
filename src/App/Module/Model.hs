@@ -12,8 +12,6 @@
 module App.Module.Model
   ( ModuleId
   , Module(..)
-  , ModuleLanguageId
-  , ModuleLanguage(..)
   , EntityField(..)
   , migrateModule
   ) where
@@ -28,9 +26,5 @@ Module
     description Text
     repository Text
     supervisor ProgrammerId
-
-ModuleLanguage
-    module ModuleId
-    language LanguageId
-    UniqueModuleLanguage module language
+    languages [LanguageId]
 |]

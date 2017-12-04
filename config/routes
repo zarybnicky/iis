@@ -11,13 +11,12 @@
     !/#UserId                UserAdminEditR     GET PATCH DELETE CHPASS RQPASS DEACTIVATE ACTIVATE
 
 /modules/*CrudRoute-Unit-Module            ModuleCrudR
-/patches/*CrudRoute-Unit-Patch             PatchCrudR
 /languages/*CrudRoute-Unit-Language        LanguageCrudR
 /tickets/*CrudRoute-Unit-Ticket            TicketCrudR
 /bugs/*CrudRoute-Unit-Bug                  BugCrudR
 /announces/*CrudRoute-Unit-Announces       AnnouncesCrudR
-/knowledge/*CrudRoute-Unit-Knowledge       KnowledgeCrudR
-/written-in/*CrudRoute-Unit-ModuleLanguage WrittenInCrudR
+/patches/*CrudRoute-Unit-Patch             PatchCrudR
+/patch-comments/*CrudRoute-Unit-PatchComment PatchCommentCrudR
 
 /                            HomeR              GET
 /entities                    EntitiesR          GET
