@@ -20,9 +20,16 @@
 
 /                            HomeR              GET
 /entities                    EntitiesR          GET
-/ticket                      TicketR            GET POST
-/patch                       PatchR             GET POST
-/patch/view/#PatchId         PatchViewR         GET
+/my-tickets                  MyTicketsR         GET
+/my-tickets/add              AddTicketR         GET POST
+/my-tickets/edit/#TicketId   EditTicketR        GET POST
+/my-tickets/delete/#TicketId DeleteTicketR      GET
+/my-tickets/view/#TicketId   ViewTicketR        GET
+/my-patches                  MyPatchesR         GET
+/my-patches/add              AddPatchR          GET POST
+/my-patches/edit/#PatchId    EditPatchR         GET POST
+/my-patches/delete/#PatchId  DeletePatchR       GET
+/my-patches/view/#PatchId    ViewPatchR         GET
 /patch/grid                  PatchGridR         GET
 /patch/approve/#PatchId/#Bool PatchApproveR     POST
 /patch/deploy/#PatchId/#Bool  PatchDeployR      POST

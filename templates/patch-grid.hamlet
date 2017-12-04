@@ -11,7 +11,7 @@
     $forall (patch, user) <- xs
       <tr>
         <td>
-          <a href=@{PatchViewR (entityKey patch)}>
+          <a href=@{ViewPatchR (entityKey patch)}>
             #{patchName $ entityVal patch}
         <td>#{userFullName $ entityVal user}
         <td>#{tshow $ patchCreationDate $ entityVal patch}

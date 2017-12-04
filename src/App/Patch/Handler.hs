@@ -26,17 +26,79 @@ import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Auth (requireAuthId)
 import Yesod.Form.Bootstrap3
 
-getPatchR :: Handler Html
-getPatchR = postPatchR
+getMyPatchesR :: Handler Html
+getMyPatchesR = do
+  uid <- requireAuthId
+  ps <- runDB $ selectList [PatchAuthor ==. uid] [Desc PatchCreationDate]
+  defaultLayout $ [whamlet|
+    <h1>My patches
+    <a href=@{AddPatchR}><b>+ New patch
+    <table .table>
+      <thead>
+        <th>Snippet
+        <th>Created
+        <th>
+        <th>
+      <tbody>
+        $forall Entity k p <- ps
+          <tr>
+            <td>#{patchName p}
+            <td>#{tshow $ patchCreationDate p}
+            <td>
+              <a href=@{EditPatchR k}>Edit
+            <td>
+              <a href=@{DeletePatchR k}>Delete
+  |]
 
-postPatchR :: Handler Html
-postPatchR = do
+getAddPatchR :: Handler Html
+getAddPatchR = postAddPatchR
+
+postAddPatchR :: Handler Html
+postAddPatchR = do
   uid <- requireAuthId
   now <- liftIO $ fmap utctDay getCurrentTime
-  ((res, form), enctype) <- runFormPost (patchInsertForm uid now)
+  ((res, form), enctype) <- runFormPost (patchUserForm Nothing uid now)
   case res of
-    FormSuccess t -> runDB (insert t) >> redirect PatchR
-    _ -> defaultLayout [whamlet|<form enctype=#{enctype}>^{form}|]
+    FormSuccess t -> do
+      _ <- runDB (insert t)
+      setMessage "Patch added"
+      redirect MyPatchesR
+    _ -> defaultLayout [whamlet|<form method="post" enctype=#{enctype}>^{form}|]
+
+getEditPatchR :: PatchId -> Handler Html
+getEditPatchR = postEditPatchR
+
+postEditPatchR :: PatchId -> Handler Html
+postEditPatchR pid = do
+  uid <- requireAuthId
+  p <- runDB $ get404 pid
+  when (patchAuthor p /= uid) (permissionDenied "You can edit only your patches")
+  now <- liftIO $ fmap utctDay getCurrentTime
+  ((res, form), enctype) <- runFormPost (patchUserForm (Just p) uid now)
+  case res of
+    FormSuccess t -> do
+      _ <- runDB (replace pid t)
+      setMessage "Patch added"
+      redirect MyPatchesR
+    _ -> defaultLayout [whamlet|<form method="post" enctype=#{enctype}>^{form}|]
+
+getDeletePatchR :: PatchId -> Handler Html
+getDeletePatchR pid = do
+  uid <- requireAuthId
+  p <- runDB $ get404 pid
+  when (patchAuthor p /= uid) (permissionDenied "You can edit only your patches")
+  runDB $ delete pid
+  redirect MyPatchesR
+
+getViewPatchR :: PatchId -> Handler Html
+getViewPatchR pid = do
+  p <- runDB $ get404 pid
+  defaultLayout $ [whamlet|
+    <h1>Patch view
+    Created: #{tshow $ patchCreationDate p}
+    <pre>
+      #{patchContent p}
+  |]
 
 getPatchGridR :: Handler Html
 getPatchGridR = do
@@ -67,17 +129,6 @@ postPatchDeployR pid True = do
 postPatchDeployR pid False = do
   runDB $ update pid [PatchDeploymentDate =. Nothing]
   return $ TypedContent typePlain ""
-
-getPatchViewR:: PatchId -> Handler Html
-getPatchViewR = pid True do 
-  patch <- runDB $ selectList [] [Asc pid]
-    defaultLayout 
-      [whamlet|
-          <ul>
-              $forall Entity content patchData <- patch
-                  <li>
-                      <a href=@{PatchR content}>#{patchDataContent patchData}
-      |]
 
 handlePatchCrudR :: CrudRoute () Patch -> Handler Html
 handlePatchCrudR =
@@ -121,16 +172,16 @@ handlePatchCommentCrudR =
         ]
   }
 
-patchInsertForm :: UserId -> Day -> Form Patch
-patchInsertForm uid now =
+patchUserForm :: Maybe Patch -> UserId -> Day -> Form Patch
+patchUserForm m uid now =
   renderBootstrap3 BootstrapBasicForm $
   Patch <$>
-  fmap unTextarea (areq textareaField (bfs MsgContent) Nothing) <*>
-  pure uid <*>
-  pure now <*>
-  pure Nothing <*>
-  pure Nothing <*>
-  pure Nothing <*
+  fmap unTextarea (areq textareaField (bfs MsgContent) (Textarea . patchContent <$> m)) <*>
+  pure (fromMaybe uid (patchAuthor <$> m)) <*>
+  pure (fromMaybe now (patchCreationDate <$> m)) <*>
+  pure (fromMaybe Nothing (patchApproved <$> m)) <*>
+  pure (fromMaybe Nothing (patchApprovalDate <$> m)) <*>
+  pure (fromMaybe Nothing (patchDeploymentDate <$> m)) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
 patchForm :: Maybe Patch -> UTCTime -> Form Patch

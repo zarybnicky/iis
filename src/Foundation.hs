@@ -91,7 +91,8 @@ instance Yesod App where
     let mkMenu n r = when (isJust $ can r "GET") $ tell [(n, r)]
     let navbarLeft :: [(Text, Route App)] = execWriter $ do
           tell [("Home", HomeR)]
-          mkMenu "New ticket" TicketR
+          mkMenu "My tickets" MyTicketsR
+          mkMenu "My patches" MyPatchesR
           mkMenu "Patch grid" PatchGridR
     let navbarRight = execWriter $ do
           mkMenu "Mgmt" EntitiesR
@@ -141,7 +142,6 @@ instance YesodBreadcrumbs App where
   breadcrumb HomeR = return ("Home", Nothing)
   breadcrumb (AuthR _) = return ("Login", Just HomeR)
   breadcrumb RegistrationR = return ("Registration", Just HomeR)
-  breadcrumb TicketR = return ("New ticket", Just HomeR)
   breadcrumb (ModuleOverviewR _) = return ("Module overview", Just HomeR)
   breadcrumb (UserAdminR UserAdminIndexR) = return ("User management", Just HomeR)
   breadcrumb (UserAdminR (UserAdminEditR _)) = return ("Edit", Just (UserAdminR UserAdminIndexR))
@@ -154,9 +154,15 @@ instance YesodBreadcrumbs App where
   breadcrumb (TicketCrudR _) = return ("Ticket administration", Just EntitiesR)
   breadcrumb (BugCrudR _) = return ("Bug administration", Just EntitiesR)
   breadcrumb (AnnouncesCrudR _) = return ("Ticket/bug link administration", Just EntitiesR)
-  breadcrumb PatchR = return ("New patch", Just HomeR)
-  breadcrumb (PatchViewR _) = return ("Patch view", Just HomeR)
   breadcrumb PatchGridR = return ("Patch grid", Just HomeR)
+  breadcrumb MyPatchesR = return ("My patches", Just HomeR)
+  breadcrumb AddPatchR = return ("Add patch", Just MyPatchesR)
+  breadcrumb (EditPatchR _) = return ("Edit patch", Just MyPatchesR)
+  breadcrumb (ViewPatchR _) = return ("View patch", Just HomeR)
+  breadcrumb MyTicketsR = return ("My tickets", Just HomeR)
+  breadcrumb AddTicketR = return ("Add ticket", Just MyTicketsR)
+  breadcrumb (EditTicketR _) = return ("Edit ticket", Just MyTicketsR)
+  breadcrumb (ViewTicketR _) = return ("View ticket", Just HomeR)
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance CmsRoles App where
@@ -167,7 +173,6 @@ instance CmsRoles App where
   actionAllowedFor HomeR _ = AllowAll
   actionAllowedFor (AuthR _) _ = AllowAll
   actionAllowedFor RegistrationR _ = AllowAll
-  actionAllowedFor TicketR _ = AllowAuthenticated
   actionAllowedFor EntitiesR _ = AllowRoles $ S.fromList [RoleProgrammer, RoleAdmin]
   actionAllowedFor (ModuleOverviewR _) _ = AllowAuthenticated
   actionAllowedFor (UserAdminActivateR _ _) _ = AllowAuthenticated
@@ -181,8 +186,16 @@ instance CmsRoles App where
   actionAllowedFor (AnnouncesCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchCommentCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
-  actionAllowedFor PatchR _ = AllowAuthenticated
-  actionAllowedFor (PatchViewR _) _ = AllowAuthenticated
+  actionAllowedFor MyTicketsR _ = AllowAuthenticated
+  actionAllowedFor AddTicketR _ = AllowAuthenticated
+  actionAllowedFor (EditTicketR _) _ = AllowAuthenticated
+  actionAllowedFor (DeleteTicketR _) _ = AllowAuthenticated
+  actionAllowedFor (ViewTicketR _) _ = AllowAuthenticated
+  actionAllowedFor MyPatchesR _ = AllowAuthenticated
+  actionAllowedFor AddPatchR _ = AllowAuthenticated
+  actionAllowedFor (EditPatchR _) _ = AllowAuthenticated
+  actionAllowedFor (DeletePatchR _) _ = AllowAuthenticated
+  actionAllowedFor (ViewPatchR _) _ = AllowAuthenticated
   actionAllowedFor PatchGridR _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchApproveR _ _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor (PatchDeployR _ _) _ = AllowRoles $ S.fromList [RoleAdmin]

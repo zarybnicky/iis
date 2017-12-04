@@ -9,12 +9,13 @@ module App.Ticket.Handler where
 
 import App.Bug.Model
 import App.Ticket.Model
-import App.User.Model (UserId)
+import App.User.Model
 import App.Utils (optionsUsers, optionsProgrammers)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..), (==.), on)
 import Cms.Crud
 import Cms.Crud.Route (CrudRoute(..), handleCrud)
 import Colonnade (headed)
+import qualified Database.Esqueleto as E
 import Foundation
 import Message (AppMessage(..))
 import qualified Text.Blaze.Html5 as H
@@ -22,17 +23,87 @@ import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Auth (requireAuthId)
 import Yesod.Form.Bootstrap3
 
-getTicketR :: Handler Html
-getTicketR = postTicketR
-
-postTicketR :: Handler Html
-postTicketR = do
+getMyTicketsR :: Handler Html
+getMyTicketsR = do
   uid <- requireAuthId
-  ((res, form), enctype) <- runFormPost (ticketInsertForm uid)
-  setMessage"Ticket created."
+  ps :: [(Entity Ticket, Maybe (Entity User))] <-
+    runDB $ E.select $ E.from $ \(t `E.LeftOuterJoin` p `E.InnerJoin` u) -> do
+    E.on (t E.^. TicketAssignedTo E.==. p E.?. ProgrammerId)
+    E.on (p E.?. ProgrammerUser E.==. u E.?. UserId)
+    E.orderBy [E.desc $ t E.^. TicketId]
+    E.where_ $ t E.^. TicketAuthor E.==. E.val uid
+    return (t, u)
+  defaultLayout $ [whamlet|
+    <h1>My patches
+    <a href=@{AddPatchR}><b>+ New patch
+    <table .table>
+      <thead>
+        <th>Name
+        <th>Status
+        <th>Assigned to
+        <th>
+        <th>
+      <tbody>
+        $forall (Entity k p, m) <- ps
+          <tr>
+            <td>#{ticketName p}
+            <td>#{tshow $ ticketStatus p}
+            $maybe Entity _ u <- m
+              <td>#{userFullName u}
+            $nothing
+              <td>-
+            <td>
+              <a href=@{EditTicketR k}>Edit
+            <td>
+              <a href=@{DeleteTicketR k}>Delete
+  |]
+
+getAddTicketR :: Handler Html
+getAddTicketR = postAddTicketR
+
+postAddTicketR :: Handler Html
+postAddTicketR = do
+  uid <- requireAuthId
+  ((res, form), enctype) <- runFormPost (ticketUserForm Nothing uid)
   case res of
-    FormSuccess t -> runDB (insert t) >> redirect TicketR
-    _ -> defaultLayout [whamlet|<form model=post enctype=#{enctype}>^{form}|]
+    FormSuccess t -> do
+      _ <- runDB (insert t)
+      setMessage "Ticket added"
+      redirect MyTicketsR
+    _ -> defaultLayout [whamlet|<form method="post" enctype=#{enctype}>^{form}|]
+
+getEditTicketR :: TicketId -> Handler Html
+getEditTicketR = postEditTicketR
+
+postEditTicketR :: TicketId -> Handler Html
+postEditTicketR pid = do
+  uid <- requireAuthId
+  p <- runDB $ get404 pid
+  when (ticketAuthor p /= uid) (permissionDenied "You can edit only your ticketes")
+  ((res, form), enctype) <- runFormPost (ticketUserForm (Just p) uid)
+  case res of
+    FormSuccess t -> do
+      _ <- runDB (replace pid t)
+      setMessage "Ticket added"
+      redirect MyTicketsR
+    _ -> defaultLayout [whamlet|<form method="post" enctype=#{enctype}>^{form}|]
+
+getDeleteTicketR :: TicketId -> Handler Html
+getDeleteTicketR pid = do
+  uid <- requireAuthId
+  p <- runDB $ get404 pid
+  when (ticketAuthor p /= uid) (permissionDenied "You can edit only your ticketes")
+  runDB $ delete pid
+  redirect MyTicketsR
+
+getViewTicketR :: TicketId -> Handler Html
+getViewTicketR pid = do
+  p <- runDB $ get404 pid
+  defaultLayout $ [whamlet|
+    <h1>#{ticketName p}
+    <p>
+      #{ticketDescription p}
+  |]
 
 handleTicketCrudR :: CrudRoute () Ticket -> Handler Html
 handleTicketCrudR =
@@ -71,14 +142,15 @@ handleAnnouncesCrudR =
       ]
   }
 
-ticketInsertForm :: UserId -> Form Ticket
-ticketInsertForm uid =
+ticketUserForm :: Maybe Ticket -> UserId -> Form Ticket
+ticketUserForm m uid =
   renderBootstrap3 BootstrapBasicForm $
-  Ticket <$> areq textField (bfs MsgTitle) Nothing <*>
-  fmap unTextarea (areq textareaField (bfs MsgDescription) Nothing) <*>
-  pure StatusNew <*>
-  pure uid <*>
-  pure Nothing <*
+  Ticket <$>
+  areq textField (bfs MsgTitle) (ticketName <$> m) <*>
+  fmap unTextarea (areq textareaField (bfs MsgDescription) (Textarea . ticketDescription <$> m)) <*>
+  pure (fromMaybe StatusNew (ticketStatus <$> m)) <*>
+  pure (fromMaybe uid (ticketAuthor <$> m)) <*>
+  pure (fromMaybe Nothing (ticketAssignedTo <$> m)) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
 ticketForm :: Maybe Ticket -> UTCTime -> Form Ticket
