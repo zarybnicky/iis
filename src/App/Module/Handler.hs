@@ -37,11 +37,11 @@ getHomeR = do
 getModuleOverviewR :: ModuleId -> Handler Html
 getModuleOverviewR mid = do
   m <- runDB $ get404 mid
-  xs :: [(Entity Ticket, Entity Bug)] <- runDB $ select $ from $ \(a `InnerJoin` b `InnerJoin` t) -> do
-    on (b ^. BugId ==. a ^. AnnouncesBug)
-    on (a ^. AnnouncesTicket ==. t ^. TicketId)
+  xs :: [(Maybe (Entity Ticket), Entity Bug)] <- runDB $ select $ from $ \(b `LeftOuterJoin` a `LeftOuterJoin` t) -> do
+    on (a ?. AnnouncesTicket ==. t ?. TicketId)
+    on (just (b ^. BugId) ==. a ?. AnnouncesBug)
     where_ (b ^. BugModule ==. val mid)
-    orderBy [asc (t ^. TicketId)]
+    orderBy [desc (b ^. BugId)]
     return (t, b)
   let entities = ClassyPrelude.Yesod.groupBy (\(_, a) (_, b) -> entityKey a == entityKey b) xs
   defaultLayout $(widgetFile "module-overview")

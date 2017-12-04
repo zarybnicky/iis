@@ -9,6 +9,10 @@ main {
     flex: 1;
 }
 
+.red {
+    color: #FF4136;
+}
+
 body {
     background: #f7f7f7;
     font-size: 16px;

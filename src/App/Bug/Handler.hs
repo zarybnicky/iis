@@ -80,7 +80,7 @@ bugForm m _ =
   areq intField (bfs MsgSeverity) (bugSeverity <$> m) <*>
   aopt intField (bfs MsgVulnerability) (bugVulnerability <$> m) <*>
   areq (selectField optionsModules) (bfs MsgModule) (bugModule <$> m) <*>
-  aopt (selectField optionsPatches) (bfs MsgPatch) (bugIsRepairedBy <$> m) <*
+  aopt (selectField optionsPatches) (bfs ("Is repaired by patch" :: Text)) (bugIsRepairedBy <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
     optionsModules = optionsPersistKey [] [Asc ModuleName] moduleName

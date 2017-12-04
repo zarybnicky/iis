@@ -2,13 +2,18 @@
   #{moduleName m}
 
 <h2>
-  Tickets
+  Bugs
 
 <ul>
   $forall bug <- entities
     <li>
-      #{bugName $ entityVal $ snd $ headEx bug}
+      $maybe vuln <- bugVulnerability $ entityVal $ snd $ headEx bug
+        <span .red>
+          #{bugName $ entityVal $ snd $ headEx bug} (vulnerability: #{vuln})
+      $nothing
+        #{bugName $ entityVal $ snd $ headEx bug}
       <ul>
-        $forall ticket <- bug
-          <li>
-            #{ticketName $ entityVal $ fst ticket}
+        $forall mticket <- bug
+          $maybe ticket <- fst mticket
+            <li>
+              #{ticketName $ entityVal ticket}
