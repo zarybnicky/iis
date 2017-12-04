@@ -164,7 +164,7 @@ ticketUserForm m uid =
   pure (fromMaybe StatusNew (ticketStatus . fst <$> m)) <*>
   pure (fromMaybe uid (ticketAuthor . fst <$> m)) <*>
   pure (fromMaybe Nothing (ticketAssignedTo . fst <$> m))) <*>
-  areq (multiSelectField optionsBugs) (bfs ("Related bugs" :: Text)) (snd <$> m) <*
+  (fmap (fromMaybe []) (aopt (multiSelectField optionsBugs) (bfs ("Related bugs" :: Text)) (Just . snd <$> m))) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
   where
     optionsBugs = optionsPersistKey [] [Asc BugName] bugName
