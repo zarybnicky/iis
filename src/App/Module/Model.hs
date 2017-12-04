@@ -32,5 +32,5 @@ Module
 ModuleLanguage
     module ModuleId
     language LanguageId
-    Primary module language
+    UniqueModuleLanguage module language
 |]

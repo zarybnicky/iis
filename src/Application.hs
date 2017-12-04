@@ -48,10 +48,11 @@ import Yesod.Default.Config2
 import App.Common
 import App.Migrations (migrateAll, migrateCustom)
 
-import App.Module.Handler (handleModuleCrudR, getHomeR, getModuleOverviewR)
-import App.Ticket.Handler (handleTicketCrudR, postTicketR, getTicketR)
-import App.Patch.Handler (handlePatchCrudR, postPatchR, getPatchR)
-import App.Language.Handler (handleLanguageCrudR)
+import App.Bug.Handler
+import App.Language.Handler
+import App.Module.Handler
+import App.Patch.Handler
+import App.Ticket.Handler
 import App.User.Handler
 
 mkYesodDispatch "App" resourcesApp

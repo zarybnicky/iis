@@ -13,13 +13,14 @@
 module Foundation where
 
 import App.ActionLog.Model
-import App.Module.Model (Module, ModuleId)
-import App.Ticket.Model (Ticket)
-import App.Patch.Model (Patch)
-import App.Language.Model (Language)
+import App.Bug.Model (Bug)
+import App.Module.Model
+import App.Ticket.Model
+import App.Patch.Model
+import App.Language.Model
 import App.Roles.Model (UserRole(..), EntityField(..))
 import App.Roles.Types (RoleName(..))
-import App.User.Model (User(..), UserId, EntityField(..), Unique(..))
+import App.User.Model
 import ClassyPrelude.Yesod hiding (modifyMVar)
 import Cms.ActionLog.Class (CmsActionLog(..))
 import Cms.Class (Cms(..))
@@ -93,6 +94,7 @@ instance Yesod App where
           mkMenu "New ticket" TicketR
           mkMenu "Accounts" (UserAdminR UserAdminIndexR)
     let navbarRight = execWriter $ do
+          mkMenu "Entities" EntitiesR
           when (isNothing muser) $ tell [("Register", RegistrationR)]
           when (isNothing muser) $ tell [("Login", (AuthR LoginR))]
           case muser of
@@ -144,10 +146,15 @@ instance YesodBreadcrumbs App where
   breadcrumb (UserAdminR UserAdminIndexR) = return ("User management", Just HomeR)
   breadcrumb (UserAdminR (UserAdminEditR _)) = return ("Edit", Just (UserAdminR UserAdminIndexR))
   breadcrumb (UserAdminR UserAdminNewR) = return ("Add", Just (UserAdminR UserAdminIndexR))
-  breadcrumb (ModuleCrudR _) = return ("Module administration", Just HomeR)
-  breadcrumb (PatchCrudR _) = return ("Patch administration", Just HomeR)
-  breadcrumb (LanguageCrudR _) = return ("Language administration", Just HomeR)
-  breadcrumb (TicketCrudR _) = return ("Ticket administration", Just HomeR)
+  breadcrumb EntitiesR = return ("Entity management", Just HomeR)
+  breadcrumb (ModuleCrudR _) = return ("Module administration", Just EntitiesR)
+  breadcrumb (PatchCrudR _) = return ("Patch administration", Just EntitiesR)
+  breadcrumb (LanguageCrudR _) = return ("Language administration", Just EntitiesR)
+  breadcrumb (TicketCrudR _) = return ("Ticket administration", Just EntitiesR)
+  breadcrumb (BugCrudR _) = return ("Bug administration", Just EntitiesR)
+  breadcrumb (AnnouncesCrudR _) = return ("Ticket/bug link administration", Just EntitiesR)
+  breadcrumb (KnowledgeCrudR _) = return ("User/language link administration", Just EntitiesR)
+  breadcrumb (WrittenInCrudR _) = return ("Module/language link administration", Just EntitiesR)
   breadcrumb  _ = return ("unknown", Nothing)
 
 instance CmsRoles App where
@@ -158,9 +165,18 @@ instance CmsRoles App where
   actionAllowedFor (AuthR _) _ = AllowAll
   actionAllowedFor RegistrationR _ = AllowAll
   actionAllowedFor TicketR _ = AllowAuthenticated
+  actionAllowedFor EntitiesR _ = AllowRoles $ S.fromList [RoleProgrammer, RoleAdmin]
   actionAllowedFor (ModuleOverviewR _) _ = AllowAuthenticated
   actionAllowedFor (UserAdminR UserAdminNewR) _ = AllowRoles $ S.fromList [RoleAdmin]
   actionAllowedFor (UserAdminR _) _ = AllowAuthenticated
+  actionAllowedFor (LanguageCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin]
+  actionAllowedFor (ModuleCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin]
+  actionAllowedFor (TicketCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
+  actionAllowedFor (BugCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
+  actionAllowedFor (AnnouncesCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
+  actionAllowedFor (KnowledgeCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
+  actionAllowedFor (WrittenInCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
+  actionAllowedFor (PatchCrudR _) _ = AllowRoles $ S.fromList [RoleAdmin, RoleProgrammer]
   actionAllowedFor _ _ = AllowRoles $ S.fromList [RoleAdmin]
 
   -- cache user roles to reduce the amount of DB calls

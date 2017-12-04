@@ -62,7 +62,7 @@ Programmer
 Knowledge
     user UserId
     language LanguageId
-    Primary user language
+    UniqueKnowledge user language
 |]
 
 _userIdent :: Functor f => (Text -> f Text) -> User -> f User

@@ -8,7 +8,8 @@
 module App.Module.Handler where
 
 import App.Bug.Model (Bug(..), EntityField(..))
-import App.Module.Model (ModuleId, Module(..), EntityField(..))
+import App.Language.Model
+import App.Module.Model
 import App.Ticket.Model (Ticket(..), EntityField(..))
 import App.Utils (optionsProgrammers)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..), on, (==.))
@@ -42,7 +43,7 @@ getModuleOverviewR mid = do
     where_ (b ^. BugModule ==. val mid)
     orderBy [asc (t ^. TicketId)]
     return (t, b)
-  let entities = ClassyPrelude.Yesod.groupBy (\(a, _) (b, _) -> entityKey a == entityKey b) xs
+  let entities = ClassyPrelude.Yesod.groupBy (\(_, a) (_, b) -> entityKey a == entityKey b) xs
   defaultLayout $(widgetFile "module-overview")
 
 getModuleR :: Handler Html
@@ -107,4 +108,52 @@ moduleMessages = CrudMessages
   , crudMsgCreated = SomeMessage . MsgLogModuleCreated . moduleName
   , crudMsgUpdated = SomeMessage . MsgLogModuleUpdated . moduleName
   , crudMsgDeleted = SomeMessage . MsgLogModuleDeleted . moduleName
+  }
+
+
+
+writtenInName :: ModuleLanguage -> Text
+writtenInName a =
+  toPathPiece (moduleLanguageModule a) <> " " <> toPathPiece (moduleLanguageLanguage a)
+
+handleWrittenInCrudR :: CrudRoute () ModuleLanguage -> Handler Html
+handleWrittenInCrudR =
+  handleCrud . flip simplerCrudToHandler WrittenInCrudR $
+  SimplerCrud
+  { crudSimplerMsg = writtenInMessages
+  , crudSimplerDb = defaultCrudDb
+  , crudSimplerForm = writtenInForm
+  , crudSimplerTable =
+      encodeClickableTable $
+      mconcat
+        [ headed "Name" $ \(e, mr) ->
+            case mr of
+              Nothing -> toHtml . writtenInName $ entityVal e
+              Just r ->
+                H.a (toHtml . writtenInName $ entityVal e) H.! H.href (H.toValue r)
+        ]
+  }
+
+writtenInForm :: Maybe ModuleLanguage -> UTCTime -> Form ModuleLanguage
+writtenInForm m _ =
+  renderBootstrap3 BootstrapBasicForm $
+  ModuleLanguage <$>
+  areq (selectField optionsModules) (bfs MsgModule) (moduleLanguageModule <$> m) <*>
+  areq (selectField optionsLanguages) (bfs MsgLanguage) (moduleLanguageLanguage <$> m) <*
+  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+  where
+    optionsModules = optionsPersistKey [] [] moduleName
+    optionsLanguages = optionsPersistKey [] [] languageName
+
+writtenInMessages :: CrudMessages App ModuleLanguage
+writtenInMessages = CrudMessages
+  { crudMsgBack = SomeMessage MsgBack
+  , crudMsgDelete = SomeMessage MsgDelete
+  , crudMsgIndex = SomeMessage MsgWrittenInAdminIndex
+  , crudMsgNew = SomeMessage MsgWrittenInAdminNew
+  , crudMsgEdit = SomeMessage MsgWrittenInAdminEdit
+  , crudMsgNoEntities = SomeMessage MsgNoWrittenInFound
+  , crudMsgCreated = SomeMessage . MsgLogWrittenInCreated . writtenInName
+  , crudMsgUpdated = SomeMessage . MsgLogWrittenInUpdated . writtenInName
+  , crudMsgDeleted = SomeMessage . MsgLogWrittenInDeleted . writtenInName
   }

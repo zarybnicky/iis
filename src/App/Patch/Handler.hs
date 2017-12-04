@@ -65,6 +65,7 @@ patchInsertForm uid now =
   pure uid <*>
   pure now <*>
   pure Nothing <*>
+  pure Nothing <*>
   pure Nothing <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
@@ -76,7 +77,8 @@ patchForm m _ =
   areq (selectField optionsUsers) (bfs MsgAuthor) (patchAuthor <$> m) <*>
   areq dayField (bfs MsgCreationDate) (patchCreationDate <$> m) <*>
   aopt (selectField optionsProgrammers) (bfs MsgApproved) (patchApproved <$> m) <*>
-  aopt dayField (bfs MsgApprovedDate) (patchApprovalDate <$> m) <*
+  aopt dayField (bfs MsgApprovedDate) (patchApprovalDate <$> m) <*>
+  aopt dayField (bfs MsgDeploymentDate) (patchDeploymentDate <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
 patchMessages :: CrudMessages App Patch

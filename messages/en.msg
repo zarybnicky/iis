@@ -16,11 +16,35 @@ TicketAdminNew: New ticket
 TicketAdminEdit: Edit ticket
 NoTicketFound: No tickets found
 
+BugAdmin: Bug
+BugAdminIndex: Bug overview
+BugAdminNew: New bug
+BugAdminEdit: Edit bug
+NoBugFound: No bugs found
+
 LanguageAdmin: Language
 LanguageAdminIndex: Language overview
 LanguageAdminNew: New language
 LanguageAdminEdit: Edit language
 NoLanguageFound: No languages found
+
+AnnouncesAdmin: Ticket/bug links
+AnnouncesAdminIndex: Ticket/bug link overview
+AnnouncesAdminNew: New ticket/bug link
+AnnouncesAdminEdit: Edit Ticket/bug link
+NoAnnouncesFound: No ticket/bug links found
+
+KnowledgeAdmin: User/language links
+KnowledgeAdminIndex: User/language link overview
+KnowledgeAdminNew: New user/language link
+KnowledgeAdminEdit: Edit user/language link
+NoKnowledgeFound: No user/language links found
+
+WrittenInAdmin: Module/language links
+WrittenInAdminIndex: Module/language link overview
+WrittenInAdminNew: New module/language link
+WrittenInAdminEdit: Edit module/language link
+NoWrittenInFound: No module/language links found
 
 PatchAdmin: Patch
 PatchAdminIndex: Patch overview
@@ -62,12 +86,24 @@ LogModuleDeleted name@Text: Deleted module "#{name}"
 LogTicketCreated name@Text: Created ticket "#{name}"
 LogTicketUpdated name@Text: Updated ticket "#{name}"
 LogTicketDeleted name@Text: Deleted ticket "#{name}"
+LogBugCreated name@Text: Created bug "#{name}"
+LogBugUpdated name@Text: Updated bug "#{name}"
+LogBugDeleted name@Text: Deleted bug "#{name}"
 LogPatchCreated name@Text: Created patch "#{name}"
 LogPatchUpdated name@Text: Updated patch "#{name}"
 LogPatchDeleted name@Text: Deleted patch "#{name}"
 LogLanguageCreated name@Text: Created language "#{name}"
 LogLanguageUpdated name@Text: Updated language "#{name}"
 LogLanguageDeleted name@Text: Deleted language "#{name}"
+LogAnnouncesCreated name@Text: Created announces "#{name}"
+LogAnnouncesUpdated name@Text: Updated announces "#{name}"
+LogAnnouncesDeleted name@Text: Deleted announces "#{name}"
+LogKnowledgeCreated name@Text: Created knowledge "#{name}"
+LogKnowledgeUpdated name@Text: Updated knowledge "#{name}"
+LogKnowledgeDeleted name@Text: Deleted knowledge "#{name}"
+LogWrittenInCreated name@Text: Created writtenIn "#{name}"
+LogWrittenInUpdated name@Text: Updated writtenIn "#{name}"
+LogWrittenInDeleted name@Text: Deleted writtenIn "#{name}"
 LogUserCreated name@Text: Created user "#{name}"
 LogUserUpdated name@Text: Updated user "#{name}"
 LogUserDeleted name@Text: Deleted user "#{name}"
@@ -112,13 +148,20 @@ Repository: Repository
 Status: Status
 Author: Author
 AssignedTo: Assigned to
-CreationDate: CreationDate
+CreationDate: Creation date
 Approved: Approved
-ApprovedDate: ApprovedDate
+ApprovedDate: Approval date
 IsProgrammer: Is programmer
 ContractNum: Contract no.
 Commitment: Commitment
 HourlyWage: Hourly wage
+Severity: Severity
+Module: Module
+Bug: Bug
+Ticket: Ticket
+DeploymentDate: Deployment date
+User: User
+Language: Language
 
 Dashboard: Dashboard
 Administration: Administrace

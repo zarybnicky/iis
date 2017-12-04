@@ -15,4 +15,3 @@ mkMessage "App" "messages" "en"
 
 renderAppMessage :: [Text] -> AppMessage -> Text
 renderAppMessage = renderMessage App
-

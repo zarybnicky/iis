@@ -11,28 +11,18 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module App.User.Handler
-  ( getUserAdminIndexR
-  , getUserAdminNewR
-  , postUserAdminNewR
-  , getUserAdminEditR
-  , patchUserAdminEditR
-  , deleteUserAdminEditR
-  , chpassUserAdminEditR
-  , rqpassUserAdminEditR
-  , deactivateUserAdminEditR
-  , activateUserAdminEditR
-  , getUserAdminActivateR
-  , postUserAdminActivateR
-  , getRegistrationR
-  , postRegistrationR
-  ) where
+module App.User.Handler where
 
+import App.Language.Model
 import App.User.Model
-import ClassyPrelude.Yesod hiding (Request)
+import App.Utils (optionsUsers)
+import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
 import Cms.Class (adminLayout)
+import Cms.Crud
+import Cms.Crud.Route
 import Cms.ActionLog.Class (logMsg)
 import Cms.Roles.Class (Roles, getCan, getUserRoles, setUserRoles, mayAssignRoles, defaultRoles)
+import Colonnade (headed)
 import Control.Arrow ((&&&))
 import Control.Lens
 import Data.Maybe (fromJust, fromMaybe, isJust)
@@ -44,6 +34,8 @@ import Foundation
 import Message (AppMessage(..))
 import Settings
 import Text.Hamlet (hamletFile)
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as H
 import Yesod.Auth (Creds(..), Route(LoginR), requireAuthId, setCreds, authLayout)
 import Yesod.Auth.Email (saltPass)
 import Yesod.Auth.HashDB (setPassword)
@@ -475,3 +467,49 @@ postUserAdminActivateR userId token = do
       authLayout $ do
         setTitleI MsgAccountAlreadyActivated
         $(widgetFile "user/account-already-activated")
+
+
+knowledgeName :: Knowledge -> Text
+knowledgeName a =
+  toPathPiece (knowledgeUser a) <> " " <> toPathPiece (knowledgeLanguage a)
+
+handleKnowledgeCrudR :: CrudRoute () Knowledge -> Handler Html
+handleKnowledgeCrudR =
+  handleCrud . flip simplerCrudToHandler KnowledgeCrudR $
+  SimplerCrud
+  { crudSimplerMsg = knowledgeMessages
+  , crudSimplerDb = defaultCrudDb
+  , crudSimplerForm = knowledgeForm
+  , crudSimplerTable =
+      encodeClickableTable $
+      mconcat
+        [ headed "Name" $ \(e, mr) ->
+            case mr of
+              Nothing -> toHtml . knowledgeName $ entityVal e
+              Just r ->
+                H.a (toHtml . knowledgeName $ entityVal e) H.! H.href (H.toValue r)
+        ]
+  }
+
+knowledgeForm :: Maybe Knowledge -> UTCTime -> Form Knowledge
+knowledgeForm m _ =
+  renderBootstrap3 BootstrapBasicForm $
+  Knowledge <$>
+  areq (selectField optionsUsers) (bfs MsgUser) (knowledgeUser <$> m) <*>
+  areq (selectField optionsLanguages) (bfs MsgLanguage) (knowledgeLanguage <$> m) <*
+  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+  where
+    optionsLanguages = optionsPersistKey [] [] languageName
+
+knowledgeMessages :: CrudMessages App Knowledge
+knowledgeMessages = CrudMessages
+  { crudMsgBack = SomeMessage MsgBack
+  , crudMsgDelete = SomeMessage MsgDelete
+  , crudMsgIndex = SomeMessage MsgKnowledgeAdminIndex
+  , crudMsgNew = SomeMessage MsgKnowledgeAdminNew
+  , crudMsgEdit = SomeMessage MsgKnowledgeAdminEdit
+  , crudMsgNoEntities = SomeMessage MsgNoKnowledgeFound
+  , crudMsgCreated = SomeMessage . MsgLogKnowledgeCreated . knowledgeName
+  , crudMsgUpdated = SomeMessage . MsgLogKnowledgeUpdated . knowledgeName
+  , crudMsgDeleted = SomeMessage . MsgLogKnowledgeDeleted . knowledgeName
+  }

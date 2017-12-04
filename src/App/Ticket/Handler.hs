@@ -7,19 +7,14 @@
 
 module App.Ticket.Handler where
 
-import App.Bug.Model (EntityField(..))
-import App.Module.Model (Module(..), ModuleId)
-import App.Ticket.Model (Ticket(..), TicketId, TicketStatus(..), EntityField(..))
+import App.Bug.Model
+import App.Ticket.Model
 import App.User.Model (UserId)
 import App.Utils (optionsUsers, optionsProgrammers)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..), (==.), on)
-import Cms.Crud (CrudMessages(..), encodeClickableTable)
-import Cms.Crud.Simple
+import Cms.Crud
 import Cms.Crud.Route (CrudRoute(..), handleCrud)
-import Cms.Roles.Class (getCan)
 import Colonnade (headed)
-import qualified Data.Text as T
-import Database.Esqueleto
 import Foundation
 import Message (AppMessage(..))
 import qualified Text.Blaze.Html5 as H
@@ -38,47 +33,44 @@ postTicketR = do
     FormSuccess t -> runDB (insert t) >> redirect TicketR
     _ -> defaultLayout [whamlet|<form enctype=#{enctype}>^{form}|]
 
-handleTicketCrudR :: CrudRoute ModuleId Ticket -> Handler Html
+handleTicketCrudR :: CrudRoute () Ticket -> Handler Html
 handleTicketCrudR =
-  handleCrud . toCrudHandler $
-  (basicChildSimpleCrud getParent TicketCrudR)
-  { scCrudMsg = ticketMessages
-  , scForm = ticketForm . either (const Nothing) Just
-  , scView = return . toHtml . T.pack . show
-  , scIndex = \mid -> do
-      can <- getCan
-      render <- getUrlRenderParams
-      xs :: [Entity Ticket] <-
-        runDB . select . from $ \(t `InnerJoin` b `InnerJoin` a) -> do
-          on (b ^. BugId ==. a ^. AnnouncesBug)
-          on (a ^. AnnouncesTicket ==. t ^. TicketId)
-          where_ (b ^. BugModule ==. val mid)
-          return t
-      let entities =
-            (id &&& fmap (`render` []) . flip can "GET" . TicketCrudR . EditR . entityKey) <$> xs
-      return $
-        encodeClickableTable
-        (mconcat
-          [ headed "Name" $ \(e, mr) ->
-              case mr of
-                Nothing -> toHtml . ticketName $ entityVal e
-                Just r ->
-                  H.a (toHtml . ticketName $ entityVal e) H.! H.href (H.toValue r)
-          ])
-        entities
+  handleCrud . flip simplerCrudToHandler TicketCrudR $
+  SimplerCrud
+  { crudSimplerMsg = ticketMessages
+  , crudSimplerDb = defaultCrudDb
+  , crudSimplerForm = ticketForm
+  , crudSimplerTable =
+      encodeClickableTable
+      (mconcat
+        [ headed "Name" $ \(e, mr) ->
+            case mr of
+              Nothing -> toHtml . ticketName $ entityVal e
+              Just r ->
+                H.a (toHtml . ticketName $ entityVal e) H.! H.href (H.toValue r)
+        ])
   }
-  where
-    getParent :: TicketId -> YesodDB App ModuleId
-    getParent k = do
-      p :: [Entity Module] <-
-        select $
-        from $ \(b `InnerJoin` a `InnerJoin` m) -> do
-          on (b ^. BugId ==. a ^. AnnouncesBug)
-          on (a ^. AnnouncesTicket ==. val k)
-          return m
-      case p of
-        [] -> notFound
-        p':_ -> return $ entityKey p'
+
+announcesName :: Announces -> Text
+announcesName a =
+  toPathPiece (announcesBug a) <> " " <> toPathPiece (announcesTicket a)
+
+handleAnnouncesCrudR :: CrudRoute () Announces -> Handler Html
+handleAnnouncesCrudR =
+  handleCrud . flip simplerCrudToHandler AnnouncesCrudR $
+  SimplerCrud
+  { crudSimplerMsg = announcesMessages
+  , crudSimplerDb = defaultCrudDb
+  , crudSimplerForm = announcesForm
+  , crudSimplerTable =
+      encodeClickableTable
+        (mconcat
+           [ headed "Name" $ \(e, mr) ->
+               case mr of
+                 Nothing -> toHtml . announcesName $ entityVal e
+                 Just r -> H.a (toHtml . announcesName $ entityVal e) H.! H.href (H.toValue r)
+           ])
+  }
 
 ticketInsertForm :: UserId -> Form Ticket
 ticketInsertForm uid =
@@ -90,8 +82,8 @@ ticketInsertForm uid =
   pure Nothing <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
-ticketForm :: Maybe Ticket -> Form Ticket
-ticketForm m =
+ticketForm :: Maybe Ticket -> UTCTime -> Form Ticket
+ticketForm m _ =
   renderBootstrap3 BootstrapBasicForm $
   Ticket <$> areq textField (bfs MsgName) (ticketName <$> m) <*>
   areq textField (bfs MsgDescription) (ticketDescription <$> m) <*>
@@ -99,6 +91,17 @@ ticketForm m =
   areq (selectField optionsUsers) (bfs MsgAuthor) (ticketAuthor <$> m) <*>
   aopt (selectField optionsProgrammers) (bfs MsgAssignedTo) (ticketAssignedTo <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+
+announcesForm :: Maybe Announces -> UTCTime -> Form Announces
+announcesForm m _ =
+  renderBootstrap3 BootstrapBasicForm $
+  Announces <$>
+  areq (selectField optionsBugs) (bfs MsgBug) (announcesBug <$> m) <*>
+  areq (selectField optionsTickets) (bfs MsgTicket) (announcesTicket <$> m) <*
+  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+  where
+    optionsBugs = optionsPersistKey [] [] bugName
+    optionsTickets = optionsPersistKey [] [] ticketName
 
 ticketMessages :: CrudMessages App Ticket
 ticketMessages = CrudMessages
@@ -111,4 +114,17 @@ ticketMessages = CrudMessages
   , crudMsgCreated = SomeMessage . MsgLogTicketCreated . ticketName
   , crudMsgUpdated = SomeMessage . MsgLogTicketUpdated . ticketName
   , crudMsgDeleted = SomeMessage . MsgLogTicketDeleted . ticketName
+  }
+
+announcesMessages :: CrudMessages App Announces
+announcesMessages = CrudMessages
+  { crudMsgBack = SomeMessage MsgBack
+  , crudMsgDelete = SomeMessage MsgDelete
+  , crudMsgIndex = SomeMessage MsgAnnouncesAdminIndex
+  , crudMsgNew = SomeMessage MsgAnnouncesAdminNew
+  , crudMsgEdit = SomeMessage MsgAnnouncesAdminEdit
+  , crudMsgNoEntities = SomeMessage MsgNoAnnouncesFound
+  , crudMsgCreated = SomeMessage . MsgLogAnnouncesCreated . announcesName
+  , crudMsgUpdated = SomeMessage . MsgLogAnnouncesUpdated . announcesName
+  , crudMsgDeleted = SomeMessage . MsgLogAnnouncesDeleted . announcesName
   }

@@ -13,9 +13,14 @@
 /modules/*CrudRoute-Unit-Module            ModuleCrudR
 /patches/*CrudRoute-Unit-Patch             PatchCrudR
 /languages/*CrudRoute-Unit-Language        LanguageCrudR
-/tickets/*CrudRoute-ModuleId-Ticket        TicketCrudR
+/tickets/*CrudRoute-Unit-Ticket            TicketCrudR
+/bugs/*CrudRoute-Unit-Bug                  BugCrudR
+/announces/*CrudRoute-Unit-Announces       AnnouncesCrudR
+/knowledge/*CrudRoute-Unit-Knowledge       KnowledgeCrudR
+/written-in/*CrudRoute-Unit-ModuleLanguage WrittenInCrudR
 
 /                            HomeR              GET
+/entities                    EntitiesR          GET
 /ticket                      TicketR            GET POST
 /patch                       PatchR             GET POST
 /module                      ModuleR            GET POST

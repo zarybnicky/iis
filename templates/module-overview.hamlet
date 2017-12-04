@@ -1,14 +1,14 @@
 <h1>
-  Module #{moduleName m}
+  #{moduleName m}
 
 <h2>
   Tickets
 
 <ul>
-  $forall ticket <- entities
+  $forall bug <- entities
     <li>
-      #{ticketName $ entityVal $ fst $ headEx ticket}
+      #{bugName $ entityVal $ snd $ headEx bug}
       <ul>
-        $forall bug <- ticket
+        $forall ticket <- bug
           <li>
-            #{bugName $ entityVal $ snd bug}
+            #{ticketName $ entityVal $ fst ticket}

@@ -35,5 +35,5 @@ Ticket
 Announces
     bug BugId
     ticket TicketId
-    Primary bug ticket
+    UniqueAnnounces bug ticket
 |]

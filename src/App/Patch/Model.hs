@@ -11,6 +11,8 @@
 module App.Patch.Model
   ( PatchId
   , Patch(..)
+  , PatchCommentId
+  , PatchComment(..)
   , EntityField(..)
   , migratePatch
   , patchName
@@ -28,6 +30,13 @@ Patch
     creationDate Day
     approved ProgrammerId Maybe
     approvalDate Day Maybe
+    deploymentDate Day Maybe
+
+PatchComment
+    parent PatchId
+    line Int
+    author UserId
+    content Text
 |]
 
 patchName :: Patch -> Text
