@@ -91,8 +91,9 @@ instance Yesod App where
     let mkMenu n r = when (isJust $ can r "GET") $ tell [(n, r)]
     let navbarLeft :: [(Text, Route App)] = execWriter $ do
           tell [("Home", HomeR)]
-          mkMenu "My tickets" MyTicketsR
-          mkMenu "My patches" MyPatchesR
+          mkMenu "Tickets" MyTicketsR
+          mkMenu "Patches" MyPatchesR
+          mkMenu "Bugs" MyBugsR
           mkMenu "Patch grid" PatchGridR
     let navbarRight = execWriter $ do
           mkMenu "Mgmt" EntitiesR

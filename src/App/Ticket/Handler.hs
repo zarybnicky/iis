@@ -16,6 +16,7 @@ import Cms.Crud
 import Cms.Crud.Route (CrudRoute(..), handleCrud)
 import Colonnade (headed)
 import qualified Database.Esqueleto as E
+import qualified Database.Persist as P
 import Foundation
 import Message (AppMessage(..))
 import qualified Text.Blaze.Html5 as H
@@ -68,8 +69,10 @@ postAddTicketR = do
   uid <- requireAuthId
   ((res, form), enctype) <- runFormPost (ticketUserForm Nothing uid)
   case res of
-    FormSuccess t -> do
-      _ <- runDB (insert t)
+    FormSuccess (t, bugs) -> do
+      _ <- runDB $ do
+        tid <- insert t
+        insertMany $ flip Announces tid <$> bugs
       setMessage "Ticket added"
       redirect MyTicketsR
     _ -> defaultLayout [whamlet|<form method="post" enctype=#{enctype}>^{form}|]
@@ -82,10 +85,17 @@ postEditTicketR pid = do
   uid <- requireAuthId
   p <- runDB $ get404 pid
   when (ticketAuthor p /= uid) (permissionDenied "You can edit only your tickets")
-  ((res, form), enctype) <- runFormPost (ticketUserForm (Just p) uid)
+  bugs <- fmap (fmap entityKey) . runDB $ E.select $ E.from $ \(a `E.InnerJoin` b) -> do
+    E.on (a E.^. AnnouncesBug E.==. b E.^. BugId)
+    E.where_ $ a E.^. AnnouncesTicket E.==. E.val pid
+    return b
+  ((res, form), enctype) <- runFormPost (ticketUserForm (Just (p, bugs)) uid)
   case res of
-    FormSuccess t -> do
-      _ <- runDB (replace pid t)
+    FormSuccess (t, bugs') -> do
+      _ <- runDB $ do
+        replace pid t
+        deleteWhere [AnnouncesTicket P.==. pid]
+        insertMany $ flip Announces pid <$> bugs'
       setMessage "Ticket added"
       redirect MyTicketsR
     _ -> defaultLayout [whamlet|<form method="post" enctype=#{enctype}>^{form}|]
@@ -144,16 +154,20 @@ handleAnnouncesCrudR =
       ]
   }
 
-ticketUserForm :: Maybe Ticket -> UserId -> Form Ticket
+ticketUserForm :: Maybe (Ticket, [BugId]) -> UserId -> Form (Ticket, [BugId])
 ticketUserForm m uid =
   renderBootstrap3 BootstrapBasicForm $
-  Ticket <$>
-  areq textField (bfs ("Title(*)" :: Text)) (ticketName <$> m) <*>
-  fmap unTextarea (areq textareaField (bfs ("Description(*)" :: Text)) (Textarea . ticketDescription <$> m)) <*>
-  pure (fromMaybe StatusNew (ticketStatus <$> m)) <*>
-  pure (fromMaybe uid (ticketAuthor <$> m)) <*>
-  pure (fromMaybe Nothing (ticketAssignedTo <$> m)) <*
+  (,) <$>
+  (Ticket <$>
+  areq textField (bfs ("Title(*)" :: Text)) (ticketName . fst <$> m) <*>
+  fmap unTextarea (areq textareaField (bfs ("Description(*)" :: Text)) (Textarea . ticketDescription . fst <$> m)) <*>
+  pure (fromMaybe StatusNew (ticketStatus . fst <$> m)) <*>
+  pure (fromMaybe uid (ticketAuthor . fst <$> m)) <*>
+  pure (fromMaybe Nothing (ticketAssignedTo . fst <$> m))) <*>
+  areq (multiSelectField optionsBugs) (bfs ("Related bugs" :: Text)) (snd <$> m) <*
   bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
+  where
+    optionsBugs = optionsPersistKey [] [Asc BugName] bugName
 
 ticketForm :: Maybe Ticket -> UTCTime -> Form Ticket
 ticketForm m _ =
