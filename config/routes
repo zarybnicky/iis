@@ -17,4 +17,6 @@
 
 /                            HomeR              GET
 /ticket                      TicketR            GET POST
+/patch                       PatchR             GET POST
+/module                      ModuleR            GET POST
 !/modules/#ModuleId/overview ModuleOverviewR    GET

@@ -7,6 +7,7 @@
 
 module App.Patch.Handler where
 
+import App.User.Model (UserId)
 import App.Patch.Model (Patch(..), patchName)
 import App.Utils (optionsUsers, optionsProgrammers)
 import ClassyPrelude.Yesod hiding (Request, FormMessage(..))
@@ -17,7 +18,23 @@ import Foundation
 import Message (AppMessage(..))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as H
+import Yesod.Auth (requireAuthId)
 import Yesod.Form.Bootstrap3
+
+getPatchR :: Handler Html
+getPatchR = postPatchR
+
+postPatchR :: Handler Html
+postPatchR = do
+  uid <- requireAuthId
+  now <- liftIO $ fmap utctDay getCurrentTime
+  ((res, form), enctype) <- runFormPost (patchInsertForm uid now)
+  case res of
+    FormSuccess t -> runDB (insert t) >> redirect PatchR
+    _ -> defaultLayout [whamlet|
+           <form enctype=#{enctype}>
+             ^{form}
+         |]
 
 handlePatchCrudR :: CrudRoute () Patch -> Handler Html
 handlePatchCrudR =
@@ -39,6 +56,17 @@ handlePatchCrudR =
                 H.href (H.toValue r)
         ]
   }
+
+patchInsertForm :: UserId -> Day -> Form Patch
+patchInsertForm uid now =
+  renderBootstrap3 BootstrapBasicForm $
+  Patch <$> 
+  fmap unTextarea (areq textareaField (bfs MsgDescription) Nothing) <*>
+  pure uid <*>
+  pure now <*>
+  pure Nothing <*>
+  pure Nothing <*
+  bootstrapSubmit (BootstrapSubmit MsgSave " btn-success " [])
 
 patchForm :: Maybe Patch -> UTCTime -> Form Patch
 patchForm m _ =
